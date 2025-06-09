@@ -1,0 +1,6 @@
+[Desktop Entry]
+Exec=ghostwriter
+MimeType=text/markdown;
+Name=ghostwriter
+NoDisplay=true
+Type=Application

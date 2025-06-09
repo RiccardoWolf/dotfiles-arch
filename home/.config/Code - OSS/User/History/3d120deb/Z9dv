@@ -1,0 +1,4 @@
+## Install uwsm if the uwsm session crashes on start
+
+## Set sudo timeout
+sudo EDITOR=nano visudo

@@ -1,0 +1,7 @@
+## Official Arch repository packages (one per line)
+# Add packages below, for example:
+#   kitty
+#   rofi
+#   hyprland
+#   waybar
+#   sddm

@@ -1,0 +1,14 @@
+2025-06-01 14:02:56.572 [info] Started local extension host with pid 13322.
+2025-06-01 14:02:56.631 [info] ComputeTargetPlatform: linux-x64
+2025-06-01 14:02:56.816 [error] TreeError [SettingsTree] Tree element not found: [object Object]: Error: TreeError [SettingsTree] Tree element not found: [object Object]
+    at NRs.o (vscode-file://vscode-app/usr/lib/code/out/vs/workbench/workbench.desktop.main.js:417:8339)
+    at NRs.rerender (vscode-file://vscode-app/usr/lib/code/out/vs/workbench/workbench.desktop.main.js:417:6800)
+    at MYe.rerender (vscode-file://vscode-app/usr/lib/code/out/vs/workbench/workbench.desktop.main.js:417:15667)
+    at P0.dd (vscode-file://vscode-app/usr/lib/code/out/vs/workbench/workbench.desktop.main.js:1885:55824)
+    at P0.bd (vscode-file://vscode-app/usr/lib/code/out/vs/workbench/workbench.desktop.main.js:1885:55639)
+    at vscode-file://vscode-app/usr/lib/code/out/vs/workbench/workbench.desktop.main.js:1885:54975
+    at Set.forEach (<anonymous>)
+    at P0.$c (vscode-file://vscode-app/usr/lib/code/out/vs/workbench/workbench.desktop.main.js:1885:54959)
+    at Wne.value (vscode-file://vscode-app/usr/lib/code/out/vs/workbench/workbench.desktop.main.js:1885:38538)
+    at E.B (vscode-file://vscode-app/usr/lib/code/out/vs/workbench/workbench.desktop.main.js:29:2392)
+2025-06-01 14:03:01.225 [info] [perf] Render performance baseline is 20ms

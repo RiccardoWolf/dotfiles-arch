@@ -1,0 +1,6 @@
+## AUR packages (one per line)
+# Add AUR packages below, for example:
+#   paru
+#   hyprland-git
+#   kitty-git
+#   waybar-git

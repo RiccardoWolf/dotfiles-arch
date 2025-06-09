@@ -1,0 +1,14 @@
+## Install uwsm if the uwsm session crashes on start
+
+## Set default sudoers editor (automate)
+Defaults editor=/usr/bin/nano
+
+
+## Set sudo timeout  (automate)
+sudo EDITOR=nano visudo
+
+Modify line with "Defaults env_rest" or add at the end of the file timestamp_timeout=mins or -1 for reboot timeout
+
+## install nvidia-settings for thermals
+
+## sudo pacman -Sy archlinux-keyring

@@ -1,0 +1,6 @@
+[Desktop Entry]
+Exec=code
+MimeType=inode/directory;
+Name=code
+NoDisplay=true
+Type=Application
