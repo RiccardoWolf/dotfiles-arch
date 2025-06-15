@@ -40,3 +40,12 @@ theme dir
 
 logs
 journalctl -u -b sddm
+
+## kitty
+background_opacity 0
+
+
+
+# TO-DO
+## Packages / base
+cliphist clipboard manager

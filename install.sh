@@ -1,29 +1,42 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-repo_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+current_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 sudo pacman -Sy --needed --noconfirm archlinux-keyring
 
-if [[ -s "$repo_dir/packages/pacman.txt" ]]; then
-  sudo pacman -Sy --needed --noconfirm - < "$repo_dir/packages/pacman.txt"
+if [[ -s "$current_dir/packages/pacman.txt" ]]; then
+  sudo pacman -Sy --needed --noconfirm - < "$current_dir/packages/pacman.txt"
 fi
 
 if ! command -v yay &>/dev/null; then
   git clone https://aur.archlinux.org/yay.git /tmp/yay
   (cd /tmp/yay && makepkg -si --noconfirm)
 fi
-if [[ -s "$repo_dir/packages/aur.txt" ]]; then
+if [[ -s "$surrent_dir/packages/aur.txt" ]]; then
   yay -S --needed --noconfirm - < "$repo_dir/packages/aur.txt"
 fi
 
-if ! command -v stow &>/dev/null; then
-  sudo pacman -Sy --needed --noconfirm stow
-fi
-cd "$repo_dir"
+echo "✓ All packages installed."
 
-stow --verbose --restow --target="$HOME" home
+##
+## STOW DOTFILES
+##
+for dir in "$HOME/.config/hypr" "$HOME/.config/waybar" "$HOME/.config/rofi" "$HOME/.config/nwg-bar" "/usr/share/sddm/themes/catppuccin-macchiato"; do
+  if [[ -d "$dir" ]]; then
+    mkdir -p "$HOME/.config/old_configs"
+    sudo mv "$dir" "$HOME/.config/old_configs/"
+    mkdir -p "$dir"
+  fi
+  mkdir -p "$dir"
+done
 
-sudo stow --verbose --restow --target=/ system
+stow --verbose --restow --dir=home/.config --target="$HOME/.config/hypr" hypr
+stow --verbose --restow --dir=home/.config --target="$HOME/.config/waybar" waybar
+stow --verbose --restow --dir=home/.config --target="$HOME/.config/rofi" rofi
+stow --verbose --restow --dir=home/.config --target="$HOME/.config/nwg-bar" nwg-bar
+stow --verbose --restow --dir=home/.config --target="$HOME/.config/qt6ct" qt6ct
 
-echo "✓ All packages installed and configurations deployed."
+sudo stow --verbose --restow --target=/usr/share/sddm/themes/catppuccin-macchiato catppuccin-macchiato
+
+echo "✓ All configurations deployed."
