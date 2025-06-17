@@ -6,6 +6,7 @@ Item {
   property var user: userField.text
   property var password: passwordField.text
   property var session: sessionPanel.session
+  property var overlay: null
   property var inputHeight: Screen.height * 0.032
   property var inputWidth: Screen.width * 0.16
   Rectangle {
@@ -132,6 +133,7 @@ Item {
         }
       }
       onClicked: {
+        if (overlay) overlay.visible = true
         sddm.login(user, password, session)
       }
     }
@@ -140,6 +142,7 @@ Item {
     target: sddm
 
     function onLoginFailed() {
+      if (overlay) overlay.visible = false
       passwordField.text = ""
       passwordField.focus = true
     }
