@@ -13,8 +13,8 @@ if ! command -v yay &>/dev/null; then
   git clone https://aur.archlinux.org/yay.git /tmp/yay
   (cd /tmp/yay && makepkg -si --noconfirm)
 fi
-if [[ -s "$surrent_dir/packages/aur.txt" ]]; then
-  yay -S --needed --noconfirm - < "$repo_dir/packages/aur.txt"
+if [[ -s "$current_dir/packages/aur.txt" ]]; then
+  yay -S --needed --noconfirm - < "$current_dir/packages/aur.txt"
 fi
 
 echo "✓ All packages installed."
