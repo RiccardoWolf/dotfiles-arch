@@ -49,3 +49,11 @@ background_opacity 0
 # TO-DO
 ## Packages / base
 cliphist clipboard manager
+
+
+# Sources
+## Catppuccin themes for everything
+https://github.com/catppuccin/catppuccin?tab=readme-ov-file
+
+## waybar dotfiles
+https://github.com/faizan-20/.dotfiles/
