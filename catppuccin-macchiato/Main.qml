@@ -7,6 +7,9 @@ Item {
   id: root
   height: Screen.height
   width: Screen.width
+  LoadingOverlay {
+    id: loadingOverlay
+  }
   Rectangle {
     id: background
     anchors.fill: parent
@@ -36,13 +39,14 @@ Item {
       fill: parent
       margins: 50
     }
-    Clock {
-      id: time
-      visible: config.ClockEnabled == "true" ? true : false
-    }
-    LoginPanel {
-      id: loginPanel
-      anchors.fill: parent
-    }
+      Clock {
+        id: time
+        visible: config.ClockEnabled == "true" ? true : false
+      }
+      LoginPanel {
+        id: loginPanel
+        anchors.fill: parent
+        overlay: loadingOverlay
+      }
   }
 }
