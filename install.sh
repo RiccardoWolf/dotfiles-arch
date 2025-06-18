@@ -1,6 +1,45 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# --- Argument parsing ---
+dry_run=0
+grep_filter=""
+for arg in "$@"; do
+  case "$arg" in
+    --dry)
+      dry_run=1
+      ;;
+    *)
+      grep_filter="$arg"
+      ;;
+  esac
+done
+
+# --- Logging function ---
+log() {
+  if [[ "$dry_run" == "1" ]]; then
+    echo "[DRY_RUN]: $*"
+  else
+    echo "$*"
+  fi
+}
+
+# --- Script execution logic ---
+runs_dir="$PWD/runs"
+if [[ -d "$runs_dir" ]]; then
+  while IFS= read -r -d '' script; do
+    script_name="$(basename "$script")"
+    if [[ -n "$grep_filter" && "$script_name" != *$grep_filter* ]]; then
+      continue
+    fi
+    log "Would run: $script_name"
+    if [[ "$dry_run" != "1" ]]; then
+      "$script"
+    fi
+  done < <(find "$runs_dir" -type f -executable -print0 | sort -z)
+fi
+
+# --- Main logic (to be modularized in future) ---
 current_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 sudo pacman -Sy --needed --noconfirm archlinux-keyring

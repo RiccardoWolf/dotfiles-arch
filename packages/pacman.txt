@@ -1,57 +1,54 @@
 ## Official Arch repository packages (one per line)
-# Add packages below, for example:
 
-#   stow
+qt5-quickcontrols2
+qt5-wayland
+qt6-5compat
+qt6-declarative
+qt6-multimedia
+qt6-multimedia-ffmpeg
+qt6-positioning
+qt6-shadertools
+qt6-speech
+qt6-svg
+qt6-wayland
+qt6-webchannel
+qt6-webengine
+polkit-qt6
+qt6ct 
 
-#   qt5-quickcontrols2
-#   qt5-wayland
-#   qt6-5compat
-#   qt6-declarative
-#   qt6-multimedia
-#   qt6-multimedia-ffmpeg
-#   qt6-positioning
-#   qt6-shadertools
-#   qt6-speech
-#   qt6-svg
-#   qt6-wayland
-#   qt6-webchannel
-#   qt6-webengine
-#   polkit-qt6
-#   qt6ct 
-
-# FONTS
-#   ttf-jetbrains-mono-nerd 
-#   ttf-hack-nerd 
-#   otf-san-francisco-mono
 
 # BASE
-#   zsh
-#   hyprpaper
-#   hyprlock
-#   hypridle
-#   rofi-wayland
-#   nwg-bar
-#   nwg-displays
-#   waybar
-#   sddm
+zsh
+hyprpaper
+hyprlock
+hypridle
+rofi-wayland
+nwg-bar
+nwg-displays
+waybar
+sddm
+stow
+git
+# FONTS
+ttf-jetbrains-mono-nerd 
+ttf-hack-nerd 
+otf-san-francisco-mono
 
 # CLI/TUI TOOLS
-#   ranger
-#   git
-#   nvim
+ranger
+nvim
 
 # GUI TOOLS
-#   discord
-#   spotify
+discord
+spotify
 
 # BLUETOOTH
-#   blueman 
+blueman 
 
 # AUDIO
-#   pipewire
-#   pipewire-alsa
-#   pipewire-audio
-#   pipewire-jack
-#   pipewire-pulse
-
+pipewire
+pipewire-alsa
+pipewire-audio
+pipewire-jack
+pipewire-pulse
 

@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+log() {
+  if [[ "${DRY_RUN:-0}" == "1" ]]; then
+    echo "[DRY_RUN]: $*"
+  else
+    echo "$*"
+  fi
+}
+
+# Install zsh if not present
+if ! command -v zsh &>/dev/null; then
+  log "Installing zsh..."
+  if [[ "${DRY_RUN:-0}" != "1" ]]; then
+    sudo pacman -Sy --needed --noconfirm zsh
+  fi
+else
+  log "zsh is already installed."
+fi
+
+# Install oh-my-zsh if not present
+if [[ ! -d "$HOME/.oh-my-zsh" ]]; then
+  log "Installing oh-my-zsh..."
+  if [[ "${DRY_RUN:-0}" != "1" ]]; then
+    RUNZSH=no CHSH=no sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+  fi
+else
+  log "oh-my-zsh is already installed."
+fi
+
+# Install oh-my-zsh plugins
+declare -A plugins=(
+  [you-should-use]="https://github.com/MichaelAquilina/zsh-you-should-use.git"
+  [zsh-autosuggestions]="https://github.com/zsh-users/zsh-autosuggestions.git"
+  [zsh-syntax-highlighting]="https://github.com/zsh-users/zsh-syntax-highlighting.git"
+)
+
+ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
+for name in "${!plugins[@]}"; do
+  plugin_dir="$ZSH_CUSTOM/plugins/$name"
+  if [[ ! -d "$plugin_dir" ]]; then
+    log "Installing oh-my-zsh plugin: $name"
+    if [[ "${DRY_RUN:-0}" != "1" ]]; then
+      git clone --depth=1 "${plugins[$name]}" "$plugin_dir"
+    fi
+  else
+    log "Plugin $name already installed."
+  fi
+done
+
+# Remove original .zshrc and .bashrc
+for rc in "$HOME/.zshrc" "$HOME/.bashrc"; do
+  if [[ -f "$rc" ]]; then
+    log "Removing $rc"
+    if [[ "${DRY_RUN:-0}" != "1" ]]; then
+      rm "$rc"
+    fi
+  fi
+done
+
+# Stow new .zshrc and .bashrc from repo (assuming they are in home/)
+for rc in zshrc bashrc; do
+  log "Stowing $rc from repo to $HOME/.${rc}"
+  if [[ "${DRY_RUN:-0}" != "1" ]]; then
+    stow --verbose --restow --dir=home --target="$HOME" "$rc"
+  fi
+  log "Stowed $rc."
+done
