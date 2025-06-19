@@ -30,6 +30,7 @@ git
 ttf-jetbrains-mono-nerd 
 ttf-hack-nerd 
 otf-san-francisco-mono
+noto-fonts-emoji
 
 # CLI/TUI TOOLS
 ranger
