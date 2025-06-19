@@ -18,17 +18,14 @@ qt6ct
 
 
 # BASE
-zsh
 hyprpaper
 hyprlock
 hypridle
 rofi-wayland
 nwg-bar
 nwg-displays
-waybar
-sddm
-stow
 git
+
 # FONTS
 ttf-jetbrains-mono-nerd 
 ttf-hack-nerd 
