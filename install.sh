@@ -6,16 +6,25 @@ current_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 sudo pacman -Sy --needed --noconfirm archlinux-keyring
 # --- Argument parsing ---
 dry_run=0
-grep_filter=""
+declare -a grep_filters=()
+declare -a run_args=()
+parsing_filters=1
 for arg in "$@"; do
-  case "$arg" in
-    --dry)
-      dry_run=1
-      ;;
-    *)
-      grep_filter="$arg"
-      ;;
-  esac
+  if [[ "$parsing_filters" == "1" ]]; then
+    case "$arg" in
+      --dry)
+        dry_run=1
+        ;;
+      --)
+        parsing_filters=0
+        ;;
+      *)
+        grep_filters+=("$arg")
+        ;;
+    esac
+  else
+    run_args+=("$arg")
+  fi
 done
 
 # --- Logging function ---
@@ -32,12 +41,20 @@ runs_dir="$PWD/runs"
 if [[ -d "$runs_dir" ]]; then
   while IFS= read -r -d '' script; do
     script_name="$(basename "$script")"
-    if [[ -n "$grep_filter" && "$script_name" != *$grep_filter* ]]; then
-      continue
+    # If filters are specified, check if script_name matches any
+    if [[ ${#grep_filters[@]} -gt 0 ]]; then
+      match=0
+      for filter in "${grep_filters[@]}"; do
+        if [[ "$script_name" == *$filter* ]]; then
+          match=1
+          break
+        fi
+      done
+      [[ $match -eq 0 ]] && continue
     fi
-    log "Would run: $script_name"
+    log "Would run: $script_name ${run_args[*]}"
     if [[ "$dry_run" != "1" ]]; then
-      "$script"
+      "$script" "${run_args[@]}"
     fi
   done < <(find "$runs_dir" -type f -executable -print0 | sort -z)
 fi
