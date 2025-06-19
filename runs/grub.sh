@@ -33,16 +33,17 @@ else
 fi
 
 # Install Catppuccin GRUB theme
-THEME_DIR="/boot/grub/themes/catppuccin-macchiato"
+THEME_DIR="/boot/grub/themes/catppuccin-macchiato-grub-theme"
 if [[ ! -d "$THEME_DIR" ]]; then
   log "Installing Catppuccin GRUB theme..."
   if [[ "${DRY_RUN:-0}" != "1" ]]; then
     git clone --depth=1 https://github.com/catppuccin/grub.git /tmp/catppuccin-grub
     sudo mkdir -p "$THEME_DIR"
-    sudo cp -r /tmp/catppuccin-grub/src/macchiato/* "$THEME_DIR/"
-    sudo sed -i 's|^GRUB_THEME=.*|GRUB_THEME="$THEME_DIR/theme.txt"|' /etc/default/grub || \
-      echo "GRUB_THEME=\"$THEME_DIR/theme.txt\"" | sudo tee -a /etc/default/grub
+    sudo cp -r /tmp/catppuccin-grub/src/catppuccin-macchiato-grub-theme/* "$THEME_DIR/"
+    # Imposta il tema GRUB aggiungendo la riga alla fine del file di configurazione
+    echo 'GRUB_THEME=/boot/grub/themes/catppuccin-macchiato-grub-theme/theme.txt' | sudo tee -a /etc/default/grub
     sudo grub-mkconfig -o /boot/grub/grub.cfg
+    rm -rf /tmp/catppuccin-grub
   fi
   log "Catppuccin GRUB theme installed."
 else
