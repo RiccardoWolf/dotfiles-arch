@@ -67,3 +67,15 @@ for rc in zshrc bashrc; do
   fi
   log "Stowed $rc."
 done
+
+# Set zsh as the default shell
+if [[ "${DRY_RUN:-0}" != "1" ]]; then
+  if [[ "$SHELL" != "$(command -v zsh)" ]]; then
+    log "Setting zsh as the default shell with chsh."
+    chsh -s "$(command -v zsh)"
+  else
+    log "zsh is already the default shell."
+  fi
+else
+  log "[DRY_RUN]: Would set zsh as the default shell with chsh."
+fi
