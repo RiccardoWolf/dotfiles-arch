@@ -6,26 +6,29 @@ current_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 sudo pacman -Sy --needed --noconfirm archlinux-keyring
 # --- Argument parsing ---
 dry_run=0
-declare -a grep_filters=()
-declare -a run_args=()
-parsing_filters=1
+declare -a run_groups=()
+declare -a current_group=()
+parsing_first=1
 for arg in "$@"; do
-  if [[ "$parsing_filters" == "1" ]]; then
-    case "$arg" in
-      --dry)
-        dry_run=1
-        ;;
-      --)
-        parsing_filters=0
-        ;;
-      *)
-        grep_filters+=("$arg")
-        ;;
-    esac
+  if [[ "$parsing_first" == "1" && "$arg" == "--dry" ]]; then
+    dry_run=1
+    continue
+  fi
+  parsing_first=0
+  # Se è uno script valido, inizia un nuovo gruppo
+  if [[ -f "$current_dir/runs/$arg" && -x "$current_dir/runs/$arg" ]]; then
+    if [[ -n "${current_group[*]:-}" ]]; then
+      run_groups+=("${current_group[*]}")
+    fi
+    current_group=()
+    current_group+=("$arg")
   else
-    run_args+=("$arg")
+    current_group+=("$arg")
   fi
 done
+if [[ -n "${current_group[*]:-}" ]]; then
+  run_groups+=("${current_group[*]}")
+fi
 
 # --- Logging function ---
 log() {
@@ -39,24 +42,20 @@ log() {
 # --- Script execution logic ---
 runs_dir="$PWD/runs"
 if [[ -d "$runs_dir" ]]; then
-  while IFS= read -r -d '' script; do
-    script_name="$(basename "$script")"
-    # If filters are specified, check if script_name matches any
-    if [[ ${#grep_filters[@]} -gt 0 ]]; then
-      match=0
-      for filter in "${grep_filters[@]}"; do
-        if [[ "$script_name" == *$filter* ]]; then
-          match=1
-          break
-        fi
-      done
-      [[ $match -eq 0 ]] && continue
+  for group in "${run_groups[@]}"; do
+    IFS=' ' read -r -a parts <<< "$group"
+    script_name="${parts[0]}"
+    script_path="$runs_dir/$script_name"
+    script_args=("${parts[@]:1}")
+    if [[ -f "$script_path" && -x "$script_path" ]]; then
+      log "Would run: $script_name ${script_args[*]}"
+      if [[ "$dry_run" != "1" ]]; then
+        "$script_path" "${script_args[@]}"
+      fi
+    else
+      log "Script not found or not executable: $script_name"
     fi
-    log "Would run: $script_name ${run_args[*]}"
-    if [[ "$dry_run" != "1" ]]; then
-      "$script" "${run_args[@]}"
-    fi
-  done < <(find "$runs_dir" -type f -executable -print0 | sort -z)
+  done
 fi
 
 # --- Main logic (to be modularized in future) ---
