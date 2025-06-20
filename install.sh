@@ -15,13 +15,15 @@ for arg in "$@"; do
     continue
   fi
   parsing_first=0
-  # Se è uno script valido, inizia un nuovo gruppo
-  if [[ -f "$current_dir/runs/$arg" && -x "$current_dir/runs/$arg" ]]; then
+  # Usa ls e grep per trovare il primo script eseguibile che corrisponde
+  match_script=""
+  match_script=$(ls "$current_dir/runs/" | grep -E "^$arg(\\.sh)?" | head -n1 || true)
+  if [[ -n "$match_script" && -x "$current_dir/runs/$match_script" ]]; then
     if [[ -n "${current_group[*]:-}" ]]; then
       run_groups+=("${current_group[*]}")
     fi
     current_group=()
-    current_group+=("$arg")
+    current_group+=("$match_script")
   else
     current_group+=("$arg")
   fi
