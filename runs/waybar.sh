@@ -9,6 +9,14 @@ log() {
   fi
 }
 
+# Parse arguments
+INSTALL_NWGBAR=0
+for arg in "$@"; do
+  if [[ "$arg" == "nwgbar" ]]; then
+    INSTALL_NWGBAR=1
+  fi
+done
+
 # Install waybar if not present
 if ! pacman -Qi waybar &>/dev/null; then
   log "[WAYBAR] Installing waybar..."
@@ -26,3 +34,21 @@ if [[ "${DRY_RUN:-0}" != "1" ]]; then
   stow --verbose --restow --dir=home/.config --target="$HOME/.config/waybar" waybar
 fi
 log "[WAYBAR] waybar setup complete."
+
+# Optionally install nwg-bar and stow its config
+if [[ $INSTALL_NWGBAR -eq 1 ]]; then
+  if ! pacman -Qi nwg-bar &>/dev/null; then
+    log "[NWGBAR] Installing nwg-bar..."
+    if [[ "${DRY_RUN:-0}" != "1" ]]; then
+      sudo pacman -S --noconfirm nwg-bar
+    fi
+  else
+    log "[NWGBAR] nwg-bar is already installed."
+  fi
+  log "[NWGBAR] Stowing nwg-bar dotfiles to $HOME/.config/nwg-bar"
+  if [[ "${DRY_RUN:-0}" != "1" ]]; then
+    mkdir -p "$HOME/.config/nwg-bar"
+    stow --verbose --restow --dir=home/.config --target="$HOME/.config/nwg-bar" nwg-bar
+  fi
+  log "[NWGBAR] nwg-bar setup complete."
+fi
