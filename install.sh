@@ -1,15 +1,36 @@
 #!/usr/bin/env bash
 set -euo pipefail
-
 current_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# Prompt to set sudo timeout to never expire
+read -rp "Set sudo timeout to never expire (timestamp_timeout=-1)? [y/N]: " sudo_timeout_reply
+if [[ "$sudo_timeout_reply" =~ ^[Yy]$ ]]; then
+  echo "Backing up /etc/sudoers to /etc/sudoers.bak.copilot"
+  sudo cp /etc/sudoers /etc/sudoers.bak.copilot
+  if ! sudo grep -q '^Defaults timestamp_timeout=-1' /etc/sudoers; then
+    echo 'Defaults timestamp_timeout=-1' | sudo tee -a /etc/sudoers > /dev/null
+  fi
+  echo "Validating sudoers file syntax..."
+  if sudo visudo -c; then
+    echo "✓ Sudo timeout set to never expire."
+  else
+    echo "✗ Syntax error detected! Restoring backup."
+    sudo cp /etc/sudoers.bak.copilot /etc/sudoers
+    exit 1
+  fi
+else
+  echo "Skipped modifying sudo timeout."
+fi
+
+# Prompt to update archlinux-keyring
 read -rp "Update archlinux-keyring? [y/N]: " reply
 if [[ "$reply" =~ ^[Yy]$ ]]; then
   sudo pacman -Sy --needed --noconfirm archlinux-keyring
 fi
 
-read -rp "Replace dolphin with thunar? [Y/n]: " reply
-if [[ "$reply" =~ ^([Yy]|)$ ]]; then
+# Prompt to replace dolphin with thunar
+read -rp "Replace dolphin with thunar? [y/N]: " reply
+if [[ "$reply" =~ ^[Yy]$ ]]; then
   if pacman -Qs dolphin &>/dev/null; then
     sudo pacman -Rns --noconfirm dolphin
   fi
