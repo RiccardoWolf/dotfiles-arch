@@ -21,7 +21,6 @@ qt6ct
 hyprpaper
 hyprlock
 hypridle
-rofi-wayland
 nwg-bar
 nwg-displays
 git
