@@ -3,7 +3,22 @@ set -euo pipefail
 
 current_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-sudo pacman -Sy --needed --noconfirm archlinux-keyring
+read -rp "Update archlinux-keyring? [y/N]: " reply
+if [[ "$reply" =~ ^[Yy]$ ]]; then
+  sudo pacman -Sy --needed --noconfirm archlinux-keyring
+fi
+
+read -rp "Replace dolphin with thunar? [Y/n]: " reply
+if [[ "$reply" =~ ^([Yy]|)$ ]]; then
+  if pacman -Qs dolphin &>/dev/null; then
+    sudo pacman -Rns --noconfirm dolphin
+  fi
+  sudo pacman -Sy --needed --noconfirm thunar
+  echo "✓ Dolphin replaced with Thunar."
+else
+  echo "Skipped replacing dolphin."
+fi
+
 # --- Argument parsing ---
 dry_run=0
 declare -a run_groups=()
