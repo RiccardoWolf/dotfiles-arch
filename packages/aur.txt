@@ -1,5 +1,5 @@
 ## AUR packages (one per line)
-# Add AUR packages below, for example:
 
-#   google-chrome
-#   visual-studio-code-bin
+# BASE
+google-chrome
+visual-studio-code-bin
