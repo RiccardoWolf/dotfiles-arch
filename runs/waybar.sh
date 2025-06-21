@@ -29,6 +29,12 @@ fi
 
 # Stow waybar dotfiles from home/.config/waybar
 log "[WAYBAR] Stowing waybar dotfiles to $HOME/.config/waybar"
+if [[ -d "$HOME/.config/waybar" ]]; then
+  log "[WAYBAR] $HOME/.config/waybar already exists. Removing its contents before stowing."
+  if [[ "${DRY_RUN:-0}" != "1" ]]; then
+    find "$HOME/.config/waybar" -mindepth 1 -delete
+  fi
+fi
 if [[ "${DRY_RUN:-0}" != "1" ]]; then
   mkdir -p "$HOME/.config/waybar"
   stow --verbose --restow --dir=home/.config --target="$HOME/.config/waybar" waybar
@@ -46,6 +52,12 @@ if [[ $INSTALL_NWGBAR -eq 1 ]]; then
     log "[NWGBAR] nwg-bar is already installed."
   fi
   log "[NWGBAR] Stowing nwg-bar dotfiles to $HOME/.config/nwg-bar"
+  if [[ -d "$HOME/.config/nwg-bar" ]]; then
+    log "[NWGBAR] $HOME/.config/nwg-bar already exists. Removing its contents before stowing."
+    if [[ "${DRY_RUN:-0}" != "1" ]]; then
+      find "$HOME/.config/nwg-bar" -mindepth 1 -delete
+    fi
+  fi
   if [[ "${DRY_RUN:-0}" != "1" ]]; then
     mkdir -p "$HOME/.config/nwg-bar"
     stow --verbose --restow --dir=home/.config --target="$HOME/.config/nwg-bar" nwg-bar

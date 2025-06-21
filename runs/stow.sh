@@ -20,6 +20,18 @@ fi
 for pkg in "${DOTFILES[@]}"; do
   target="$HOME/.config/$pkg"
   log "Stowing $pkg to $target"
+  if [[ -e "$target" ]]; then
+    log "$target already exists. Removing it before stowing."
+    if [[ -d "$target" ]]; then
+      if [[ "${DRY_RUN:-0}" != "1" ]]; then
+        find "$target" -mindepth 1 -delete
+      fi
+    else
+      if [[ "${DRY_RUN:-0}" != "1" ]]; then
+        rm -f "$target"
+      fi
+    fi
+  fi
   if [[ "${DRY_RUN:-0}" != "1" ]]; then
     stow --verbose --restow --dir=home/.config --target="$target" "$pkg"
   fi

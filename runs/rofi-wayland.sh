@@ -25,10 +25,9 @@ fi
 # Stow rofi config from home/.config/rofi
 log "[ROFI] Stowing rofi dotfiles to $HOME/.config/rofi"
 if [[ -d "$HOME/.config/rofi" ]]; then
-  log "[ROFI] $HOME/.config/rofi already exists."
-else
+  log "[ROFI] $HOME/.config/rofi already exists. Removing its contents before stowing."
   if [[ "${DRY_RUN:-0}" != "1" ]]; then
-    mkdir -p "$HOME/.config/rofi"
+    find "$HOME/.config/rofi" -mindepth 1 -delete
   fi
 fi
 if [[ "${DRY_RUN:-0}" != "1" ]]; then

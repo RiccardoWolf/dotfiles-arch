@@ -62,6 +62,18 @@ done
 # Stow new .zshrc and .bashrc from repo (assuming they are in home/)
 for rc in zshrc bashrc; do
   log "Stowing $rc from repo to $HOME/.${rc}"
+  if [[ -e "$HOME/.${rc}" ]]; then
+    log "$HOME/.${rc} already exists. Removing it before stowing."
+    if [[ -d "$HOME/.${rc}" ]]; then
+      if [[ "${DRY_RUN:-0}" != "1" ]]; then
+        find "$HOME/.${rc}" -mindepth 1 -delete
+      fi
+    else
+      if [[ "${DRY_RUN:-0}" != "1" ]]; then
+        rm -f "$HOME/.${rc}"
+      fi
+    fi
+  fi
   if [[ "${DRY_RUN:-0}" != "1" ]]; then
     stow --verbose --restow --dir=home --target="$HOME" "$rc"
   fi
