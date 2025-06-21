@@ -28,8 +28,7 @@ git
 
 # FONTS
 ttf-jetbrains-mono-nerd 
-ttf-hack-nerd 
-otf-san-francisco-mono
+ttf-hack-nerd
 noto-fonts-emoji
 
 # CLI/TUI TOOLS
@@ -39,9 +38,6 @@ nvim
 # GUI TOOLS
 discord
 spotify
-
-# BLUETOOTH
-blueman 
 
 # AUDIO
 pipewire
