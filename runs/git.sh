@@ -24,9 +24,12 @@ if [[ ! -f "$HOME/.ssh/gitssh" ]]; then
   log "Generating new SSH key..."
   if [[ "${DRY_RUN:-0}" != "1" ]]; then
     ssh-keygen -t ed25519 -C "$git_email" -f "$HOME/.ssh/gitssh" -N ""
+    cat "$HOME/.ssh/gitssh.pub" | xclip -selection clipboard
+    log "SSH key generated and copied to clipboard. Please add it to your GitHub account."
   fi
 else
-  log "SSH key already exists."
+  cat "$HOME/.ssh/gitssh.pub" | xclip -selection clipboard
+  log "SSH key already exists and copied to clipboard. Please ensure it is added to your GitHub account."
 fi
 
 # Add SSH key to agent
