@@ -59,26 +59,25 @@ for rc in "$HOME/.zshrc" "$HOME/.bashrc"; do
   fi
 done
 
-# Stow new .zshrc and .bashrc from repo (assuming they are in home/)
-for rc in zshrc bashrc; do
-  log "Stowing $rc from repo to $HOME/.${rc}"
-  if [[ -e "$HOME/.${rc}" ]]; then
-    log "$HOME/.${rc} already exists. Removing it before stowing."
-    if [[ -d "$HOME/.${rc}" ]]; then
-      if [[ "${DRY_RUN:-0}" != "1" ]]; then
-        find "$HOME/.${rc}" -mindepth 1 -delete
-      fi
-    else
-      if [[ "${DRY_RUN:-0}" != "1" ]]; then
-        rm -f "$HOME/.${rc}"
-      fi
+# Stow new .zshrc from repo (assuming it is in home/)
+rc="zshrc"
+log "Stowing $rc from repo to $HOME/.${rc}"
+if [[ -e "$HOME/.${rc}" ]]; then
+  log "$HOME/.${rc} already exists. Removing it before stowing."
+  if [[ -d "$HOME/.${rc}" ]]; then
+    if [[ "${DRY_RUN:-0}" != "1" ]]; then
+      find "$HOME/.${rc}" -mindepth 1 -delete
+    fi
+  else
+    if [[ "${DRY_RUN:-0}" != "1" ]]; then
+      rm -f "$HOME/.${rc}"
     fi
   fi
-  if [[ "${DRY_RUN:-0}" != "1" ]]; then
-    stow --verbose --restow --dir=home --target="$HOME" "$rc"
-  fi
-  log "Stowed $rc."
-done
+fi
+if [[ "${DRY_RUN:-0}" != "1" ]]; then
+  stow --verbose --restow --dir=home --target="$HOME" "$rc"
+fi
+log "Stowed $rc."
 
 # Set zsh as the default shell
 if [[ "${DRY_RUN:-0}" != "1" ]]; then
