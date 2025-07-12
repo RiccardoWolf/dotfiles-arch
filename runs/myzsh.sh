@@ -49,16 +49,6 @@ for name in "${!plugins[@]}"; do
   fi
 done
 
-# Remove original .zshrc and .bashrc
-for rc in "$HOME/.zshrc" "$HOME/.bashrc"; do
-  if [[ -f "$rc" ]]; then
-    log "Removing $rc"
-    if [[ "${DRY_RUN:-0}" != "1" ]]; then
-      rm "$rc"
-    fi
-  fi
-done
-
 # Stow new .zshrc from repo (assuming it is in home/)
 rc="zshrc"
 log "Stowing $rc from repo to $HOME/.${rc}"
