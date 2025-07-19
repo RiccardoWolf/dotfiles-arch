@@ -101,20 +101,30 @@ EOF
 }
 
 # --- Argument parsing ---
+# Prima passata: estrai --dry ovunque si trovi
+args=()
 dry_run=0
-# Check for --help as first argument
-if [[ "${1:-}" == "--help" ]]; then
+for arg in "$@"; do
+  if [[ "$arg" == "--dry" ]]; then
+    dry_run=1
+  else
+    args+=("$arg")
+  fi
+done
+
+# Check for --help come primo argomento rimasto
+if [[ "${args[0]:-}" == "--help" ]]; then
   show_help
   exit 0
 fi
 
-# Special handling for stow: if present, only stow is run and all following args are passed to it
-run_groups=()  # Inizializza sempre run_groups per evitare unbound variable
-if [[ "$#" -gt 0 ]]; then
-  for ((idx=1; idx<=$#; idx++)); do
-    arg="${!idx}"
+# Special handling for stow: se presente, solo stow viene eseguito e tutti gli argomenti successivi vengono passati a lui
+run_groups=()
+if [[ "${#args[@]}" -gt 0 ]]; then
+  for ((idx=0; idx<${#args[@]}; idx++)); do
+    arg="${args[$idx]}"
     if [[ "$arg" == "stow" || "$arg" == "stow.sh" ]]; then
-      stow_args=("${@:$((idx+1))}")
+      stow_args=("${args[@]:$((idx+1))}")
       run_groups=("stow.sh ${stow_args[*]}")
       break
     fi
@@ -125,16 +135,9 @@ fi
 # Get all available run scripts (without .sh extension)
 mapfile -t all_runs < <(ls "$current_dir/runs/" | grep -E '\.sh$' | sed 's/\.sh$//')
 
-run_groups=()
 if [[ ${#run_groups[@]} -eq 0 ]]; then
   declare -a current_group=()
-  parsing_first=1
-  for arg in "$@"; do
-    if [[ "$parsing_first" == "1" && "$arg" == "--dry" ]]; then
-      dry_run=1
-      continue
-    fi
-    parsing_first=0
+  for arg in "${args[@]}"; do
     match_script=""
     for run in "${all_runs[@]}"; do
       if [[ "$arg" == "$run" || "$arg" == "$run.sh" ]]; then
@@ -144,7 +147,7 @@ if [[ ${#run_groups[@]} -eq 0 ]]; then
     done
     if [[ -n "$match_script" && -x "$current_dir/runs/$match_script" ]]; then
       if [[ ${#current_group[@]} -gt 0 ]]; then
-        run_groups+=("${current_group[@]}")
+        run_groups+=("${current_group[*]}")
       fi
       current_group=()
       current_group+=("$match_script")
@@ -153,7 +156,7 @@ if [[ ${#run_groups[@]} -eq 0 ]]; then
     fi
   done
   if [[ ${#current_group[@]} -gt 0 ]]; then
-    run_groups+=("${current_group[@]}")
+    run_groups+=("${current_group[*]}")
   fi
 fi
 
