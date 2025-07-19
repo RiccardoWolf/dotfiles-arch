@@ -1,4 +1,4 @@
-@theme "/home/kudos/.local/share/rofi/themes/spotlight-dark.rasi"
+@theme "/home/kudos/.local/share/rofi/themes/spotlight-blurred.rasi"
 
 configuration {
   show-icons: true;

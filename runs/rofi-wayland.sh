@@ -35,8 +35,14 @@ if [[ "${DRY_RUN:-0}" != "1" ]]; then
 fi
 log "[ROFI] rofi setup complete."
 
-# Stow the spotlight-blurred.rasi theme
+# Stow the custom theme
 log "[ROFI] Installazione del tema spotlight-blurred.rasi da rofi-theme/"
+if [[ -d "$HOME/.local/share/rofi/themes" ]]; then
+  log "[ROFI] $HOME/.local/share/rofi/themes già esiste. Rimuovo il suo contenuto prima di stow."
+  if [[ "${DRY_RUN:-0}" != "1" ]]; then
+    find "$HOME/.local/share/rofi/themes" -mindepth 1 -delete
+  fi
+fi
 if [[ -f "$HOME/.local/share/rofi/themes/spotlight-blurred.rasi" ]]; then
   log "[ROFI] spotlight-blurred.rasi già presente. Salto la copia."
 else

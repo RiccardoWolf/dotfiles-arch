@@ -108,10 +108,8 @@ if [[ "${1:-}" == "--help" ]]; then
   exit 0
 fi
 
-# Get all available run scripts (without .sh extension)
-mapfile -t all_runs < <(ls "$current_dir/runs/" | grep -E '\.sh$' | sed 's/\.sh$//')
-
 # Special handling for stow: if present, only stow is run and all following args are passed to it
+run_groups=()  # Inizializza sempre run_groups per evitare unbound variable
 if [[ "$#" -gt 0 ]]; then
   for ((idx=1; idx<=$#; idx++)); do
     arg="${!idx}"
@@ -124,8 +122,11 @@ if [[ "$#" -gt 0 ]]; then
 fi
 
 # If stow was not found, proceed with normal parsing
+# Get all available run scripts (without .sh extension)
+mapfile -t all_runs < <(ls "$current_dir/runs/" | grep -E '\.sh$' | sed 's/\.sh$//')
+
+run_groups=()
 if [[ ${#run_groups[@]} -eq 0 ]]; then
-  declare -a run_groups=()
   declare -a current_group=()
   parsing_first=1
   for arg in "$@"; do
@@ -135,10 +136,15 @@ if [[ ${#run_groups[@]} -eq 0 ]]; then
     fi
     parsing_first=0
     match_script=""
-    match_script=$(ls "$current_dir/runs/" | grep -E "^$arg(\\.sh)?$" | head -n1 || true)
+    for run in "${all_runs[@]}"; do
+      if [[ "$arg" == "$run" || "$arg" == "$run.sh" ]]; then
+        match_script="$run.sh"
+        break
+      fi
+    done
     if [[ -n "$match_script" && -x "$current_dir/runs/$match_script" ]]; then
-      if [[ -n "${current_group[*]:-}" ]]; then
-        run_groups+=("${current_group[*]}")
+      if [[ ${#current_group[@]} -gt 0 ]]; then
+        run_groups+=("${current_group[@]}")
       fi
       current_group=()
       current_group+=("$match_script")
@@ -146,8 +152,8 @@ if [[ ${#run_groups[@]} -eq 0 ]]; then
       current_group+=("$arg")
     fi
   done
-  if [[ -n "${current_group[*]:-}" ]]; then
-    run_groups+=("${current_group[*]}")
+  if [[ ${#current_group[@]} -gt 0 ]]; then
+    run_groups+=("${current_group[@]}")
   fi
 fi
 
