@@ -113,7 +113,7 @@ mapfile -t all_runs < <(ls "$current_dir/runs/" | grep -E '\.sh$' | sed 's/\.sh$
 
 # Special handling for stow: if present, only stow is run and all following args are passed to it
 if [[ "$#" -gt 0 ]]; then
-  for idx in "${!@}"; do
+  for ((idx=1; idx<=$#; idx++)); do
     arg="${!idx}"
     if [[ "$arg" == "stow" || "$arg" == "stow.sh" ]]; then
       stow_args=("${@:$((idx+1))}")
