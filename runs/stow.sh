@@ -34,6 +34,7 @@ for pkg in "${DOTFILES[@]}"; do
   fi
   if [[ "${DRY_RUN:-0}" != "1" ]]; then
     stow --verbose --restow --dir=home/.config --target="$target" "$pkg"
+    hyprctl reload
   fi
   log "Stowed $pkg."
 done
