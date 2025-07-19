@@ -22,6 +22,7 @@ hyprpaper
 hyprlock
 hypridle
 nwg-bar
+nwg-clipman
 nwg-displays
 git
 
@@ -35,6 +36,7 @@ ranger
 nvim
 
 # GUI TOOLS
+typobuster
 discord
 spotify
 

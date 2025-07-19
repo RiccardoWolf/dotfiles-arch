@@ -40,32 +40,124 @@ else
   echo "Skipped replacing dolphin."
 fi
 
+# --- Help message ---
+show_help() {
+  cat <<EOF
+NAME
+    install.sh - Dotfiles Arch setup & automation script
+
+SYNOPSIS
+    $0 [--dry] [--help] [run_script [args ...]]
+
+DESCRIPTION
+    Interactive script to configure an Arch Linux system and run modular scripts from the 'runs/' directory.
+    At startup, it may prompt for system actions (sudo timeout, keyring update, dolphin replacement).
+    You can specify one or more scripts to run, with optional arguments, which will be searched in the 'runs/' directory.
+
+OPTIONS
+    --dry
+        Simulate actions without making changes (dry run).
+    --help
+        Show this help message and exit.
+
+SCRIPT EXECUTION LOGIC
+    run_script [args ...]
+        Each argument is checked against the available scripts in 'runs/'.
+        If a match is found (e.g. 'base' or 'base.sh'), it is treated as a script to execute.
+        All following arguments that do not match another script name are passed as arguments to that script.
+        If another script name is found, a new execution group starts.
+        Limitation: if an argument has the same name as a script, it will be interpreted as a new script, not as an argument.
+        Example:
+            $0 base arg1 arg2 bluetooth arg3
+            # Runs 'runs/base.sh arg1 arg2' then 'runs/bluetooth.sh arg3'
+
+AVAILABLE RUN SCRIPTS
+    base           Install all base packages listed in packages/pacman.txt under the BASE section.
+    bluetooth      Installs bluez and blueman, enables and starts the bluetooth service.
+    git            Configures global git username/email and generates an SSH key if missing (and adds it to ssh-agent). Prompts for username/email.
+    grub           Installs os-prober and enables it in grub config. Then installs grub catppuccin theme.
+    kitty          Stows kitty config to $HOME/.config/kitty.
+    myzsh          Installs zsh and oh-my-zsh if missing. And stows config.
+    rofi-wayland   Installs rofi-wayland and stows its config.
+    sddm           Installs dependencies for the Catppuccin SDDM theme.
+    stow [PKG...]  Stows dotfiles from home/.config to $HOME/.config. If no arguments, stows all. If arguments are given, only those dotfiles are stowed.
+    waybar [nwgbar] Installs waybar and stows its config. If 'nwgbar' is passed as argument, also installs nwg-bar.
+
+EXAMPLES
+    $0 --help
+        Show this help message.
+    $0 --dry base
+        Simulate running 'runs/base.sh' without making changes.
+    $0 base bluetooth grub
+        Run 'runs/base.sh', then 'runs/bluetooth.sh', then 'runs/grub.sh'.
+    $0 git
+        Configure git (will prompt for username and email).
+    $0 stow kitty waybar
+        Stow only 'kitty' and 'waybar' dotfiles.
+    $0 waybar nwgbar
+        Install waybar and also install nwg-bar.
+
+EOF
+}
+
 # --- Argument parsing ---
 dry_run=0
-declare -a run_groups=()
-declare -a current_group=()
-parsing_first=1
-for arg in "$@"; do
-  if [[ "$parsing_first" == "1" && "$arg" == "--dry" ]]; then
-    dry_run=1
-    continue
-  fi
-  parsing_first=0
-  # Usa ls e grep per trovare il primo script eseguibile che corrisponde
-  match_script=""
-  match_script=$(ls "$current_dir/runs/" | grep -E "^$arg(\\.sh)?" | head -n1 || true)
-  if [[ -n "$match_script" && -x "$current_dir/runs/$match_script" ]]; then
-    if [[ -n "${current_group[*]:-}" ]]; then
-      run_groups+=("${current_group[*]}")
+# Check for --help as first argument
+if [[ "${1:-}" == "--help" ]]; then
+  show_help
+  exit 0
+fi
+
+# Get all available run scripts (without .sh extension)
+mapfile -t all_runs < <(ls "$current_dir/runs/" | grep -E '\.sh$' | sed 's/\.sh$//')
+
+# Special handling for stow: if present, only stow is run and all following args are passed to it
+if [[ "$#" -gt 0 ]]; then
+  for idx in "${!@}"; do
+    arg="${!idx}"
+    if [[ "$arg" == "stow" || "$arg" == "stow.sh" ]]; then
+      stow_args=("${@:$((idx+1))}")
+      run_groups=("stow.sh ${stow_args[*]}")
+      break
     fi
-    current_group=()
-    current_group+=("$match_script")
-  else
-    current_group+=("$arg")
+  done
+fi
+
+# If stow was not found, proceed with normal parsing
+if [[ ${#run_groups[@]} -eq 0 ]]; then
+  declare -a run_groups=()
+  declare -a current_group=()
+  parsing_first=1
+  for arg in "$@"; do
+    if [[ "$parsing_first" == "1" && "$arg" == "--dry" ]]; then
+      dry_run=1
+      continue
+    fi
+    parsing_first=0
+    match_script=""
+    match_script=$(ls "$current_dir/runs/" | grep -E "^$arg(\\.sh)?$" | head -n1 || true)
+    if [[ -n "$match_script" && -x "$current_dir/runs/$match_script" ]]; then
+      if [[ -n "${current_group[*]:-}" ]]; then
+        run_groups+=("${current_group[*]}")
+      fi
+      current_group=()
+      current_group+=("$match_script")
+    else
+      current_group+=("$arg")
+    fi
+  done
+  if [[ -n "${current_group[*]:-}" ]]; then
+    run_groups+=("${current_group[*]}")
   fi
-done
-if [[ -n "${current_group[*]:-}" ]]; then
-  run_groups+=("${current_group[*]}")
+fi
+
+# If no runs specified, run all except stow
+if [[ ${#run_groups[@]} -eq 0 ]]; then
+  for run in "${all_runs[@]}"; do
+    if [[ "$run" != "stow" ]]; then
+      run_groups+=("$run.sh")
+    fi
+  done
 fi
 
 # --- Logging function ---
