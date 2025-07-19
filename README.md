@@ -26,13 +26,16 @@ Other packages   | Irrelevant to the scripts
 -----------------|----------------------
 Document Viewer  | [Zathura](https://github.com/pwmt/zathura) !!
 Image Viewer     | [Imv](https://github.com/eXeC64/imv)
-Video Player     | [mpv](https://mpv.io/) + [Celluloid](https://github.com/celluloid-player/celluloid)
-Music Player     | [Mpd](https://www.musicpd.org/), [Ncspot](https://github.com/hrkfdn/ncspot)
+Video Player     | [mpv](https://mpv.io/)
+Music Player     | [Mpd](https://www.musicpd.org/)
 Editor           | [Neovim](https://neovim.io/)
 Theme manager    | 
 System monitor   | [Btop](https://github.com/aristocratos/btop)
-Clipboard manager| [nwg-clipman]
+Clipboard manager| [nwg-clipman](https://github.com/nwg-piotr/nwg-clipman)
 
 ## Credits
 [Waybar config](https://github.com/faizan-20/.dotfiles/)
+
 [Catppuccin theme](https://github.com/catppuccin/catppuccin) (I only used it for dunst and sddm)
+
+[Spotlight like theme for Rofi](https://github.com/newmanls)
