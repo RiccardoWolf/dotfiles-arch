@@ -35,15 +35,14 @@ if [[ "${DRY_RUN:-0}" != "1" ]]; then
 fi
 log "[ROFI] rofi setup complete."
 
-# Download and install spotlight-dark.rasi theme
-log "[ROFI] Downloading spotlight-dark.rasi theme in $HOME/.local/share/rofi/themes/"
-if [[ -f "$HOME/.local/share/rofi/themes/spotlight-dark.rasi" ]]; then
-  log "[ROFI] spotlight-dark.rasi already present. Skipping download."
+# Stow the spotlight-blurred.rasi theme
+log "[ROFI] Installazione del tema spotlight-blurred.rasi da rofi-theme/"
+if [[ -f "$HOME/.local/share/rofi/themes/spotlight-blurred.rasi" ]]; then
+  log "[ROFI] spotlight-blurred.rasi già presente. Salto la copia."
 else
   if [[ "${DRY_RUN:-0}" != "1" ]]; then
     mkdir -p "$HOME/.local/share/rofi/themes"
-    curl -fsSL -o "$HOME/.local/share/rofi/themes/spotlight-dark.rasi" \
-      "https://github.com/newmanls/rofi-themes-collection/raw/master/themes/spotlight-dark.rasi"
+    stow --verbose --restow --dir=rofi-theme --target="$HOME/.local/share/rofi/themes" .
   fi
-  log "[ROFI] spotlight-dark.rasi theme installed."
+  log "[ROFI] spotlight-blurred.rasi installato."
 fi
