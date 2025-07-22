@@ -1,0 +1,29 @@
+[Default Applications]
+x-scheme-handler/http=google-chrome.desktop
+x-scheme-handler/https=google-chrome.desktop
+
+application/pdf=google-chrome.desktop
+
+image/jpeg=imv.desktop
+image/png=imv.desktop
+image/gif=imv.desktop
+image/bmp=imv.desktop
+image/svg+xml=imv.desktop
+
+text/plain=typobuster.desktop
+text/x-markdown=typobuster.desktop
+text/csv=typobuster.desktop
+text/html=typobuster.desktop
+
+application/zip=unzip-open.desktop
+application/x-tar=unzip-open.desktop
+application/x-gzip=unzip-open.desktop
+
+/usr/bin/code -- %F
+  \.(py|js|ts|jsx|tsx|java|rb|go|sh|c|cpp|h|rs|php)$
+
+[Added Associations]
+# (se vuoi fallback multipli, es. per audio/video)
+video/mp4=vlc.desktop;mpv.desktop;
+audio/mpeg=vlc.desktop;mpv.desktop;
+
