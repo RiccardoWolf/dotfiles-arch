@@ -1,5 +1,4 @@
-## Official Arch repository packages (one per line)
-
+# QT
 qt5-quickcontrols2
 qt5-wayland
 qt6-5compat
@@ -16,7 +15,6 @@ qt6-webengine
 polkit-qt6
 qt6ct 
 
-
 # BASE
 hyprpaper
 hyprlock
@@ -31,14 +29,15 @@ ttf-jetbrains-mono-nerd
 ttf-hack-nerd
 noto-fonts-emoji
 
-# CLI/TUI TOOLS
+# CLI-TOOLS
+superfile
+impala
 ranger
 nvim
 
-# GUI TOOLS
+# GUI-TOOLS
 typobuster
 discord
-spotify
 
 # AUDIO
 pipewire

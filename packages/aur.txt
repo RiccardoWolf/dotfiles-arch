@@ -1,5 +1,4 @@
-## AUR packages (one per line)
-
 # BASE
 google-chrome
 visual-studio-code-bin
+spotify

@@ -1,3 +1,11 @@
+log() {
+  if [[ "${DRY_RUN:-0}" == "1" ]]; then
+    echo "[DRY_RUN]: $*"
+  else
+    echo "$*"
+  fi
+}
+
 # Stow kitty config
 log "Stowing kitty config to $HOME/.config/kitty"
 if [[ -d "$HOME/.config/kitty" ]]; then

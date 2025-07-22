@@ -72,24 +72,24 @@ SCRIPT EXECUTION LOGIC
             # Runs 'runs/base.sh arg1 arg2' then 'runs/bluetooth.sh arg3'
 
 AVAILABLE RUN SCRIPTS
-    base           Install all base packages listed in packages/pacman.txt under the BASE section.
-    bluetooth      Installs bluez and blueman, enables and starts the bluetooth service.
-    git            Configures global git username/email and generates an SSH key if missing (and adds it to ssh-agent). Prompts for username/email.
-    grub           Installs os-prober and enables it in grub config. Then installs grub catppuccin theme.
-    kitty          Stows kitty config to $HOME/.config/kitty.
-    myzsh          Installs zsh and oh-my-zsh if missing. And stows config.
-    rofi-wayland   Installs rofi-wayland and stows its config.
-    sddm           Installs dependencies for the Catppuccin SDDM theme.
-    stow [PKG...]  Stows dotfiles from home/.config to $HOME/.config. If no arguments, stows all. If arguments are given, only those dotfiles are stowed.
-    waybar [nwgbar] Installs waybar and stows its config. If 'nwgbar' is passed as argument, also installs nwg-bar.
+    pkg [PKG_CATEGORY...] Install all packages from the category passed as listed in packages/pacman.txt. WATCH OUT FOR CATEGORIES CONFLICTING WITH OTHER SCRIPTS NAMES.
+    bluetooth             Installs bluez and blueman, enables and starts the bluetooth service.
+    git                   Configures global git username/email and generates an SSH key if missing (and adds it to ssh-agent). Prompts for username/email.
+    grub                  Installs os-prober and enables it in grub config. Then installs grub catppuccin theme.
+    kitty                 Stows kitty config to $HOME/.config/kitty.
+    myzsh                 Installs zsh and oh-my-zsh if missing. And stows config.
+    rofi-wayland          Installs rofi-wayland and stows its config.
+    sddm                  Installs dependencies for the Catppuccin SDDM theme.
+    stow [PKG...]         Stows dotfiles from home/.config to $HOME/.config. If no arguments, stows all. If arguments are given, only those dotfiles are stowed.
+    waybar [nwgbar]       Installs waybar and stows its config. If 'nwgbar' is passed as argument, also installs nwg-bar.
 
 EXAMPLES
     $0 --help
         Show this help message.
     $0 --dry base
         Simulate running 'runs/base.sh' without making changes.
-    $0 base bluetooth grub
-        Run 'runs/base.sh', then 'runs/bluetooth.sh', then 'runs/grub.sh'.
+    $0 pkg bluetooth grub (TO FIX)
+        Run 'runs/pkg.sh', then 'runs/bluetooth.sh', then 'runs/grub.sh'.
     $0 git
         Configure git (will prompt for username and email).
     $0 stow kitty waybar

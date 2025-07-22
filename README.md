@@ -16,7 +16,6 @@ Shell            | [Zsh](https://www.zsh.org/) + [ohmyzsh](https://github.com/oh
 Launcher         | [Rofi-wayland](https://github.com/in0ni/rofi-wayland)
 Bar              | [Waybar](https://github.com/Alexays/Waybar)
 Notifications    | [Dunst](https://github.com/dunst-project/dunst)
-File Manager     | [Ranger](https://github.com/ranger/ranger)
 Mimeapps manager | [Mimeo](https://xyne.archlinux.ca/projects/mimeo/) !!
 Font             | 
 Shutdown menu    | [nwg-bar]()
@@ -24,6 +23,7 @@ Shutdown menu    | [nwg-bar]()
 
 Other packages   | Irrelevant to the scripts
 -----------------|----------------------
+File Manager     | [SuperFile](https://github.com/yorukot/superfile)
 Document Viewer  | [Zathura](https://github.com/pwmt/zathura) !!
 Image Viewer     | [Imv](https://github.com/eXeC64/imv)
 Video Player     | [mpv](https://mpv.io/)
