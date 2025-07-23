@@ -1,3 +1,16 @@
+# TODO
+- Add clipboard manager: cliphist or nwg-clipman
+- Add Dunst catppuccin theme to install 
+
+# TODO for System
+- Add mail client, Ranger as file man, media viewer/player (Imv, Mpd, Mpv)
+- Add mimeo file associations
+
+# TODO for README
+
+
+
+-----
 ### Punti di forza attuali
 
 - **Struttura chiara**: Prompt iniziali, help, parsing argomenti, logging, esecuzione script.
@@ -62,7 +75,4 @@ main() {
 - **Array**: usa array per gestire le run, evitando concatenazioni di stringhe.
 - **Funzioni**: racchiudi ogni macro-blocco in una funzione.
 - **Sourcing**: metti funzioni comuni (log, check, ecc.) in un file `lib.sh` e includilo.
-
----
-
-Se vuoi, posso proporti una versione semplificata e più modulare del tuo script! Vuoi vedere un esempio concreto?
+------
