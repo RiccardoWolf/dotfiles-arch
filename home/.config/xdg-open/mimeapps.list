@@ -10,20 +10,26 @@ image/gif=imv.desktop
 image/bmp=imv.desktop
 image/svg+xml=imv.desktop
 
-text/plain=typobuster.desktop
-text/x-markdown=typobuster.desktop
-text/csv=typobuster.desktop
-text/html=typobuster.desktop
-
-application/zip=unzip-open.desktop
-application/x-tar=unzip-open.desktop
-application/x-gzip=unzip-open.desktop
-
-/usr/bin/code -- %F
-  \.(py|js|ts|jsx|tsx|java|rb|go|sh|c|cpp|h|rs|php)$
+text/plain=nvim.desktop
+text/x-markdown=nvim.desktop
+text/x-python=nvim.desktop
+application/javascript=nvim.desktop
+text/x-typescript=nvim.desktop
+text/jsx=nvim.desktop
+text/x-java-source=nvim.desktop
+text/x-ruby=nvim.desktop
+text/x-go=nvim.desktop
+application/x-shellscript=nvim.desktop
+text/x-c=nvim.desktop
+text/x-c++src=nvim.desktop
+text/x-chdr=nvim.desktop
+text/x-csrc=nvim.desktop
+text/x-rust=nvim.desktop
+application/x-php=nvim.desktop
+text/html=nvim.desktop
+text/csv=nvim.desktop
 
 [Added Associations]
-# (se vuoi fallback multipli, es. per audio/video)
 video/mp4=vlc.desktop;mpv.desktop;
 audio/mpeg=vlc.desktop;mpv.desktop;
 

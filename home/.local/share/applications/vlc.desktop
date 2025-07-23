@@ -1,0 +1,10 @@
+# vlc.desktop
+[Desktop Entry]
+Name=VLC media player
+GenericName=Media Player
+Exec=vlc %U
+Icon=vlc
+Terminal=false
+Type=Application
+Categories=AudioVideo;Player;Recorder;
+MimeType=video/mp4;audio/mpeg;

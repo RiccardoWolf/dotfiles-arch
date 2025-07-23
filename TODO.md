@@ -1,10 +1,7 @@
 # TODO
-- Add clipboard manager: cliphist or nwg-clipman
-- Add Dunst catppuccin theme to install 
 
 # TODO for System
-- Add mail client, Ranger as file man, media viewer/player (Imv, Mpd, Mpv)
-- Add mimeo file associations
+- Add mail client
 
 # TODO for README
 

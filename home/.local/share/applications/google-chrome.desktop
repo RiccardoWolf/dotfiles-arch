@@ -1,0 +1,10 @@
+# google-chrome.desktop
+[Desktop Entry]
+Name=Google Chrome
+GenericName=Web Browser
+Exec=google-chrome-stable %U
+Icon=google-chrome
+Terminal=false
+Type=Application
+Categories=Network;WebBrowser;
+MimeType=x-scheme-handler/http;x-scheme-handler/https;application/pdf;

@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=Typobuster
+Type=Application
+Exec=typobuster %F
+Icon=accessories-text-editor
+MimeType=text/plain;text/x-markdown;
