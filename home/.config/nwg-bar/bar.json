@@ -1,7 +1,7 @@
 [
   {
     "label": "Lock",
-    "exec": "hyprlock",
+    "exec": "hyprlock --grace 10",
     "icon": "/usr/share/nwg-bar/images/system-lock-screen.svg"
   },
   {

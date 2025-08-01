@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=NeoVim
+Exec=kitty -e nvim %F
+Icon=nvim
+Terminal=false
+Type=Application
+Categories=Development;IDE;Utility;
+MimeType=text/x-python;text/javascript;text/x-typescript;text/x-java-source;text/x-ruby;text/x-go;application/x-shellscript;text/x-c;text/x-c++src;text/x-chdr;text/x-csrc;text/x-rust;application/x-php;text/jsx;text/html;text/csv;

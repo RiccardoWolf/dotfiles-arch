@@ -1,3 +1,9 @@
+# THIS FILE IS READ ONLY SO THE SYSTEM DOESN'T POLLUTE IT WITH USELESS STUFF
+# To make edits:
+# chattr -i mimeapps.list
+# then back to read only
+# chattr +i mimeapps.list
+
 [Default Applications]
 x-scheme-handler/http=google-chrome.desktop
 x-scheme-handler/https=google-chrome.desktop
@@ -12,6 +18,7 @@ image/svg+xml=imv.desktop
 
 text/plain=nvim.desktop
 text/x-markdown=nvim.desktop
+
 text/x-python=nvim.desktop
 application/javascript=nvim.desktop
 text/x-typescript=nvim.desktop
