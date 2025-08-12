@@ -38,3 +38,5 @@ System monitor   | [Btop](https://github.com/aristocratos/btop)
 [Catppuccin theme](https://github.com/catppuccin/catppuccin) (For sddm, dunst and nvim colors)
 
 [Spotlight like theme for Rofi](https://github.com/newmanls)
+
+[Nvim config](https://github.com/dam9000/kickstart-modular.nvim/)
