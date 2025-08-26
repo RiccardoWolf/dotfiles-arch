@@ -22,7 +22,7 @@ for pkg in "${DOTFILES[@]}"; do
   log "Stowing $pkg to $target"
   if [[ -e "$target" ]]; then
     log "$target already exists. Removing it before stowing."
-    if [[ -d "$target" && "$target" != "xdg-open" ]]; then
+    if [[ -d "$target" ]]; then
       if [[ "${DRY_RUN:-0}" != "1" ]]; then
         find "$target" -mindepth 1 -delete
       fi
@@ -32,7 +32,7 @@ for pkg in "${DOTFILES[@]}"; do
       fi
     fi
   fi
-  if [[ "${DRY_RUN:-0}" != "1" ]]; then
+  if [[ "${DRY_RUN:-0}" != "1" && "$pkg" != "xdg-open" ]]; then
     stow --verbose --restow --dir=home/.config --target="$target" "$pkg"
     hyprctl reload
   fi
