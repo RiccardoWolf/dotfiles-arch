@@ -22,7 +22,7 @@ for pkg in "${DOTFILES[@]}"; do
   log "Stowing $pkg to $target"
   if [[ -e "$target" ]]; then
     log "$target already exists. Removing it before stowing."
-    if [[ -d "$target" ]]; then
+    if [[ -d "$target" && "$target" != "xdg-open" ]]; then
       if [[ "${DRY_RUN:-0}" != "1" ]]; then
         find "$target" -mindepth 1 -delete
       fi
