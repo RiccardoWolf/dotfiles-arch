@@ -19,25 +19,12 @@ qt6ct
 hyprpaper
 hyprlock
 hypridle
+hyprshot
+hyprpicker
 nwg-bar
 nwg-clipman
 nwg-displays
-git
-
-# FONTS
-ttf-jetbrains-mono-nerd 
-ttf-hack-nerd
-noto-fonts-emoji
-
-# CLI-TOOLS
-superfile
-impala
-ranger
-nvim
-
-# GUI-TOOLS
-typobuster
-discord
+brightnessctl
 
 # AUDIO
 pipewire
@@ -46,3 +33,24 @@ pipewire-audio
 pipewire-jack
 pipewire-pulse
 
+# FONTS
+ttf-jetbrains-mono-nerd 
+ttf-hack-nerd
+noto-fonts-emoji
+
+# UTILS
+stow
+impala
+nvim
+git
+nwg-clipman
+normcap
+syncthing
+discord
+remmina
+obsidian
+gimp
+thunderbird
+google-chrome
+visual-studio-code-bin
+spotify

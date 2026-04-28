@@ -1,115 +1,98 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-CATEGORY="${1:-base}"
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)/lib.sh"
 
-log() {
-  if [[ "${DRY_RUN:-0}" == "1" ]]; then
-    echo "[DRY_RUN]: $*"
-  else
-    echo "$*"
-  fi
-}
+PACKAGE_FILE="$REPO_ROOT/package-list.txt"
+categories=("$@")
+if [[ ${#categories[@]} -eq 0 ]]; then
+  categories=(all)
+fi
 
-# Function to extract packages by category (e solo quelli fuori da ogni categoria, cioè solo quelli PRIMA della prima sezione)
 extract_pkgs() {
   local file="$1"
   local category="$2"
-  if [[ -z "$category" ]]; then
-    # Nessuna categoria: estrai solo i pacchetti prima della prima sezione
-    awk '/^# / {exit} NF && $1 !~ /^#/ {print $1}' "$file"
+
+  if [[ "$category" == "all" ]]; then
+    awk 'NF && $1 !~ /^#/ {print $1}' "$file"
   else
     awk -v cat="$category" '
-      BEGIN {in_cat=0; cat_tol=tolower(cat)}
-      # Sezione di categoria
+      BEGIN {in_cat=0; wanted=tolower(cat)}
       /^# / {
-        if (tolower($0) ~ "#.*"cat_tol) {in_cat=1; next} else {in_cat=0; next}
+        heading=tolower($0)
+        sub(/^#[[:space:]]*/, "", heading)
+        in_cat=(heading == wanted)
+        next
       }
       in_cat && NF && $1 !~ /^#/ {print $1}
     ' "$file"
   fi
 }
 
-# Funzione per unire e deduplicare pacchetti
-join_and_dedupe() {
-  awk '!seen[$0]++' <(printf "%s\n" "$@")
+package_in_sync_db() {
+  pacman -Si "$1" &>/dev/null
 }
 
-PACMAN_FILE="$(dirname "$0")/../packages/pacman.txt"
-AUR_FILE="$(dirname "$0")/../packages/aur.txt"
-
-# Parse pacman packages
-if [[ -f "$PACMAN_FILE" ]]; then
-  always_pkgs=$(extract_pkgs "$PACMAN_FILE" "ALWAYS INSTALL")
-  category_pkgs=$(extract_pkgs "$PACMAN_FILE" "$CATEGORY")
-  pacman_pkgs=$(join_and_dedupe $always_pkgs $category_pkgs)
-else
-  pacman_pkgs=""
-fi
-
-if [[ -z "$pacman_pkgs" ]]; then
-  log "No pacman packages found for category '$CATEGORY'."
-else
-  missing_pacman_pkgs=()
-  for pkg in $pacman_pkgs; do
-    if pacman -Qi "$pkg" &>/dev/null; then
-      log "[PACMAN] $pkg is already installed."
-    else
-      log "[PACMAN] $pkg is missing. Will install."
-      missing_pacman_pkgs+=("$pkg")
-    fi
-  done
-  if [[ ${#missing_pacman_pkgs[@]} -gt 0 ]]; then
-    log "Installing missing pacman packages: ${missing_pacman_pkgs[*]}"
-    if [[ "${DRY_RUN:-0}" != "1" ]]; then
-      sudo pacman -Sy --needed --noconfirm "${missing_pacman_pkgs[@]}"
-    fi
-    log "Pacman packages installation complete."
-  else
-    log "All pacman packages are already installed."
+ensure_yay() {
+  if command -v yay &>/dev/null; then
+    log "yay is already installed."
+    return 0
   fi
-fi
 
-# Ensure yay is installed
-if ! command -v yay &>/dev/null; then
   log "yay not found. Installing yay from AUR."
-  if [[ "${DRY_RUN:-0}" != "1" ]]; then
-    git clone https://aur.archlinux.org/yay.git /tmp/yay
+  run_cmd rm -rf /tmp/yay
+  run_cmd git clone https://aur.archlinux.org/yay.git /tmp/yay
+  if is_dry_run; then
+    log "Would build and install yay from /tmp/yay."
+  else
     (cd /tmp/yay && makepkg -si --noconfirm)
   fi
-  log "yay installation complete."
-else
-  log "yay is already installed."
+}
+
+ensure_path_exists "$PACKAGE_FILE"
+
+mapfile -t packages < <(
+  for category in "${categories[@]}"; do
+    extract_pkgs "$PACKAGE_FILE" "$category"
+  done | awk '!seen[$0]++'
+)
+if [[ ${#packages[@]} -eq 0 ]]; then
+  die "No packages found for categories '${categories[*]}' in $PACKAGE_FILE"
 fi
 
-# Parse AUR packages
-if [[ -f "$AUR_FILE" && -s "$AUR_FILE" ]]; then
-  always_aur_pkgs=$(extract_pkgs "$AUR_FILE" "ALWAYS INSTALL")
-  category_aur_pkgs=$(extract_pkgs "$AUR_FILE" "$CATEGORY")
-  aur_pkgs=$(join_and_dedupe $always_aur_pkgs $category_aur_pkgs)
+pacman_pkgs=()
+aur_pkgs=()
+for pkg in "${packages[@]}"; do
+  if package_in_sync_db "$pkg"; then
+    pacman_pkgs+=("$pkg")
+  else
+    aur_pkgs+=("$pkg")
+  fi
+done
+
+if [[ ${#pacman_pkgs[@]} -gt 0 ]]; then
+  log "Checking pacman packages: ${pacman_pkgs[*]}"
+  install_pacman_packages "${pacman_pkgs[@]}"
 else
-  aur_pkgs=""
+  log "No pacman packages found for categories '${categories[*]}'."
 fi
 
-if [[ -z "$aur_pkgs" ]]; then
-  log "No AUR packages found for category '$CATEGORY'."
-else
+if [[ ${#aur_pkgs[@]} -gt 0 ]]; then
+  ensure_yay
+
   missing_aur_pkgs=()
-  for pkg in $aur_pkgs; do
-    if yay -Qi "$pkg" &>/dev/null; then
+  for pkg in "${aur_pkgs[@]}"; do
+    if command -v yay &>/dev/null && yay -Qi "$pkg" &>/dev/null; then
       log "[AUR] $pkg is already installed."
     else
       log "[AUR] $pkg is missing. Will install."
       missing_aur_pkgs+=("$pkg")
     fi
   done
+
   if [[ ${#missing_aur_pkgs[@]} -gt 0 ]]; then
-    log "Installing missing AUR packages: ${missing_aur_pkgs[*]}"
-    if [[ "${DRY_RUN:-0}" != "1" ]]; then
-      yay -S --needed --noconfirm "${missing_aur_pkgs[@]}"
-    fi
-    log "AUR packages installation complete."
-  else
-    log "All AUR packages are already installed."
+    run_cmd yay -S --needed --noconfirm "${missing_aur_pkgs[@]}"
   fi
+else
+  log "No AUR packages found for categories '${categories[*]}'."
 fi
