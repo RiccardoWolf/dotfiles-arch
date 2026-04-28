@@ -1,28 +1,29 @@
 {
+  "on-sigusr2": "reload",
+  "reload_style_on_change": true,
   "layer": "top",
   "position": "top",
   "mod": "dock",
   "exclusive": true,
-  // "passthrough": true,
   "gtk-layer-shell": true,
   "height": 25,
-  // "spacing": 4,
   "modules-left": ["hyprland/workspaces", "hyprland/window"],
-  "modules-center": ["clock"],
+  "modules-center": [],
   "modules-right": [
+    "custom/spotify",
     "custom/media",
-    // "privacy",
-    //"idle_inhibitor",
-    "network",
+    //"tray",
     "bluetooth",
+    "network",
+    "custom/vpn",
+    "pulseaudio#microphone",
+    "pulseaudio",
+    "backlight",
     "temperature",
     "memory",
-    // "pulseaudio#microphone",
-    "pulseaudio",
-    // "backlight",
+    "clock",
     "battery",
     "custom/powermenu"
-    // "tray",
   ],
 
   "hyprland/window": {
@@ -31,14 +32,6 @@
     "separate-outputs": true,
     "icon": true,
     "icon-size": 18,
-  },
-
-  "idle_inhibitor": {
-    "format": "{icon}",
-    "format-icons": {
-      "activated": "󰈈",
-      "deactivated": "󰈉",
-    },
   },
 
   "hyprland/workspaces": {
@@ -66,37 +59,37 @@
   },
 
   "clock": {
-    "format": "  {:%I:%M %p    %a, %b %e}",
+    "format": "{:%H:%M}",
     "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
     "interval": 60,
   },
 
   "backlight": {
     "device": "intel_backlight",
-    "format": "{icon}  {percent}",
+    "format": "{icon} {percent}",
     "format-icons": ["󰃞", "󰃟", "󰃠"],
     "on-scroll-up": "brightnessctl set 5%+",
     "on-scroll-down": "brightnessctl set 5%-",
-    "min-length": 6,
+    "min-length": 6
   },
 
   "battery": {
     "states": {
       "good": 95,
-      "warning": 30,
-      "critical": 20,
+      "warning": 25,
+      "critical": 15
     },
     "format": "{icon} {capacity}%",
     "format-charging": " {capacity}%",
     "format-plugged": " {capacity}%",
-    "format-alt": "{time} {icon}",
-    "format-icons": ["󰂎", "󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󱈑"],
+    "format-alt": "{icon} {time}",
+    "format-icons": ["󰂎", "󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󱈑"]
   },
 
   "pulseaudio": {
-    "format": "{icon}  {volume}",
+    "format": "{icon} {volume}",
     "tooltip": true,
-    "format-muted": " mute",
+    "format-muted": "",
     "on-click": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
     "on-click-right": "pavucontrol",
     "on-scroll-up": "wpctl set-volume -l 1.4 @DEFAULT_AUDIO_SINK@ 5%+",
@@ -108,46 +101,52 @@
       "headset": "",
       "phone": "",
       "portable": "",
-      "car": "",
       "default": ["", "", ""],
     },
   },
 
   "pulseaudio#microphone": {
     "format": "{format_source}",
-    "format-source": " {volume}%",
-    "format-source-muted": "  ミュート",
+    "format-source": "",
+    "format-source-muted": "",
     "on-click": "pamixer --default-source -t",
     "on-scroll-up": "pamixer --default-source -i 5",
     "on-scroll-down": "pamixer --default-source -d 5",
-    "scroll-step": 5,
+    "scroll-step": 5
   },
 
   "temperature": {
+    "hwmon-path-abs": "/sys/devices/platform/coretemp.0/hwmon/",
+    "input-filename": "temp1_input",
     "thermal-zone": 1,
     "format": "{temperatureC}°C",
-    "critical-threshold": 80,
-    "format-critical": "{temperatureC}°C ",
+    "critical-threshold": 75,
+    "format-critical": "{temperatureC}°C "
   },
 
   "memory": {
-    "interval": 30,
-    "format": "  {}%",
+    "interval": 15,
+    "format": " {}%",
     "max-length": 10,
     "tooltip": true,
     "tooltip-format": "Memory - {used:0.1f}GB used",
-    "on-click": "kitty -e btop",
+    "on-click": "kitty -e btop"
   },
 
   "network": {
-    // "interface": "wlp2*", // (Optional) To force the use of this interface
-    "format-wifi": "  {signalStrength}%",
+    "format-wifi": " {signalStrength}%",
     "format-ethernet": "{ipaddr}/{cidr} ",
-    "tooltip-format": "{essid} - {ifname} via {gwaddr} ",
     "format-linked": "{ifname} (No IP) ",
     "format-disconnected": "󰖪 ⚠",
-    "format-alt": "{ifname}:{essid} {ipaddr}/{cidr}",
-    "on-click-right": "ghostty -e nmtui",
+    "tooltip-format": "{ifname}: {essid} {ipaddr}/{cidr}",
+    "on-click": "kitty -e impala"
+  },
+
+  "custom/vpn": {
+    "return-type": "json",
+    "interval": 10,
+    "exec": "$HOME/.config/waybar/openvpn3-widget.sh status",
+    "on-click": "$HOME/.config/waybar/openvpn3-widget.sh toggle"
   },
 
   "bluetooth": {
@@ -157,28 +156,16 @@
     "tooltip-format": "{device_alias}",
     "tooltip-format-connected": " {device_enumerate}",
     "tooltip-format-enumerate-connected": "{device_alias}",
-    "on-click": "blueman-manager",
+    "on-click": "blueman-manager"
   },
 
   // CUSTOM MODULES
   "custom/powermenu": {
     "format": "⏻ ",
     "escape": true,
-    "on-click": "nwg-bar",
-    // "on-click-right": "playerctl stop",
+    "on-click": "nwg-bar"
   },
-  "custom/media": {
-    "format": "{icon} {}",
-    "escape": true,
-    "return-type": "json",
-    "max-length": 40,
-    "on-click": "playerctl play-pause",
-    "on-click-right": "playerctl stop",
-    "smooth-scrolling-threshold": 10, // This value was tested using a trackpad, it should be lowered if using a mouse.
-    "on-scroll-up": "playerctl next",
-    "on-scroll-down": "playerctl previous",
-    "exec": "$HOME/.config/waybar/mediaplayer.py 2> /dev/null", // Script in resources/custom_modules folder
-  },
+  
   "custom/spotify": {
     "format": "{icon} {}",
     "escape": true,

@@ -107,3 +107,15 @@ fi
 alias ls="ls -l -a --color=auto --group-directories-first"
 
 
+export PATH="$HOME/.npm-global/bin:$PATH"
+
+export OPENCODE_ENABLE_EXA=1 opencode
+
+# OPENAI_API_KEY is intentionally not stored in this repo. Source it from a local secrets file instead.
+
+# GitHub MCP token
+# GITHUB_PAT is intentionally not stored in this repo. Source it from a local secrets file instead.
+
+export NVM_DIR="$HOME/.config/nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion

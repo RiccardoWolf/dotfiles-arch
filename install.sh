@@ -43,9 +43,12 @@ SCRIPT EXECUTION LOGIC
 AVAILABLE RUN SCRIPTS
     pkg [PKG_CATEGORY...] Install packages from package-list.txt. If no category is given, installs all listed packages.
     bluetooth             Installs bluez and blueman, enables and starts the bluetooth service.
+    colorpicker           Installs hyprpicker and wl-clipboard, then verifies the Hyprland color picker bind.
     git                   Configures global git username/email and generates an SSH key if missing (and adds it to ssh-agent). Prompts for username/email.
     grub                  Installs os-prober and enables it in grub config. Then installs grub catppuccin theme.
     myzsh                 Installs zsh and oh-my-zsh if missing. And stows config.
+    openvpn               Installs OpenVPN 3 from AUR with Waybar widget dependencies and prints OpenVPN 3 CLI examples.
+    printer               Installs CUPS, Avahi/mDNS, and IPP packages, then enables printing services.
     rofi-wayland          Installs rofi-wayland and stows its config.
     sddm                  Installs dependencies for the Catppuccin SDDM theme.
     stow [PKG...]         Stows dotfiles from home/.config to $HOME/.config. If no arguments, stows all. If arguments are given, only those dotfiles are stowed.
@@ -60,6 +63,8 @@ EXAMPLES
         Select tasks interactively with fzf.
     $0 pkg BASE bluetooth grub
         Run 'runs/pkg.sh', then 'runs/bluetooth.sh', then 'runs/grub.sh'.
+    $0 printer colorpicker openvpn
+        Run printer, color picker, and OpenVPN setup tasks.
     $0 git
         Configure git (will prompt for username and email).
     $0 stow rofi waybar

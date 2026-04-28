@@ -3,7 +3,7 @@
 
 @define-color muted           #6e6a86;
 @define-color subtle          #908caa;
-@define-color text            white;
+@define-color text            black;
 
 @define-color love            #eb6f92;
 @define-color rose            #ebbcba;
@@ -15,6 +15,7 @@
 @define-color highlightLow    #21202e;
 @define-color highlightHigh   #524f67;
 
+
 * {
   border: none;
   border-radius: 0;
@@ -25,7 +26,7 @@
 }
 
 window#waybar {
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.5);
   color: @text;
 }
 /* FIX THIS */
@@ -75,7 +76,6 @@ tooltip {
 #battery,
 #pulseaudio,
 #network,
-#custom-vpn,
 #bluetooth,
 #temperature,
 #workspaces,
@@ -124,18 +124,6 @@ window#waybar.empty #window {
 
 #network {
   color: rgb(0, 255, 221);
-}
-
-#custom-vpn.vpn-connected {
-  color: @foam;
-}
-
-#custom-vpn.vpn-disconnected {
-  color: @subtle;
-}
-
-#custom-vpn.vpn-unavailable {
-  color: @love;
 }
 
 #idle_inhibitor {

@@ -33,22 +33,6 @@ package_in_sync_db() {
   pacman -Si "$1" &>/dev/null
 }
 
-ensure_yay() {
-  if command -v yay &>/dev/null; then
-    log "yay is already installed."
-    return 0
-  fi
-
-  log "yay not found. Installing yay from AUR."
-  run_cmd rm -rf /tmp/yay
-  run_cmd git clone https://aur.archlinux.org/yay.git /tmp/yay
-  if is_dry_run; then
-    log "Would build and install yay from /tmp/yay."
-  else
-    (cd /tmp/yay && makepkg -si --noconfirm)
-  fi
-}
-
 ensure_path_exists "$PACKAGE_FILE"
 
 mapfile -t packages < <(

@@ -21,6 +21,7 @@ hyprlock
 hypridle
 hyprshot
 hyprpicker
+wl-clipboard
 nwg-bar
 nwg-clipman
 nwg-displays
@@ -54,3 +55,22 @@ thunderbird
 google-chrome
 visual-studio-code-bin
 spotify
+
+# PRINTING
+cups
+cups-filters
+cups-pdf
+avahi
+nss-mdns
+ipp-usb
+system-config-printer
+cups-pk-helper
+
+# COLORPICKER
+hyprpicker
+wl-clipboard
+
+# VPN
+openvpn3
+jq
+libnotify

@@ -1,75 +1,93 @@
 # TODO
 
-# TODO for System
-- Add mail client
+## TODO for Tools and Integrations
 
-# TODO for README
+- [ ] Add OCR tool install and config: aggiungere installazione, dipendenze e configurazione dello strumento OCR usato nel setup.
+- [ ] Add syncthing automated config: automatizzare la configurazione iniziale di Syncthing, inclusi file di configurazione e comportamento atteso dopo l'installazione.
+- [ ] Add higher quality icons for nwg-bar and rofi: sostituire o aggiungere icone di qualita migliore per `nwg-bar` e `rofi`, verificando i path usati dalle rispettive configurazioni.
+- [x] Add printer setup (cups+avahi+IPP): aggiungere setup stampanti con `cups`, `avahi` e supporto IPP, includendo servizi da abilitare e pacchetti necessari.
+- [x] Add setup for colorpicker: aggiungere installazione e configurazione del color picker, includendo eventuali bind o integrazione con Hyprland.
+- [x] Add setup openvpn + waybar widget: aggiungere installazione/configurazione OpenVPN e un widget Waybar per mostrare stato o controllo VPN. (https://openvpn.net/community-docs/openvpn-client-for-linux.html)
+- [ ] Add fonts config: aggiungere configurazione font, pacchetti richiesti.
+- [ ] Add mime types: aggiungere gestione MIME types per associare applicazioni predefinite ai formati usati nel desktop.
 
+## TODO for System
 
+- [ ] Definire le task di sistema mancanti: questa sezione era presente nel contenuto originale ma senza task specifiche.
 
------
-### Punti di forza attuali
+## TODO for README
 
-- **Struttura chiara**: Prompt iniziali, help, parsing argomenti, logging, esecuzione script.
-- **Help ben fatto**: Spiega sintassi, opzioni, logica e script disponibili.
-- **Gestione DRY_RUN**: Uniforme in tutti i log e nelle run.
-- **Parsing robusto**: Ora la gestione di `stow` è chiara e non ambigua.
+- [ ] Add hyprpm+hypr plugins: documentare installazione, aggiornamento e uso di `hyprpm` e dei plugin Hyprland usati dalla configurazione.
+- [ ] Refactor all: riorganizzare completamente il README per renderlo piu chiaro, mantenendo istruzioni, prerequisiti e flusso di installazione.
+- [ ] Documentare workaround Electron quando `scaling != 1`: spiegare quando applicare la configurazione XWayland seguente per le app Electron.
 
----
-
-### Possibili semplificazioni e miglioramenti
-
-1. **Parsing argomenti più semplice e leggibile**
-   - Puoi usare `getopts` per le opzioni (`--dry`, `--help`), separando la logica delle opzioni da quella delle run.
-   - Dopo le opzioni, puoi gestire la logica di `stow` e delle altre run in modo più lineare.
-
-2. **Eliminare duplicazioni**
-   - La funzione di logging è ripetuta in molti script: potresti esportarla in un file `lib.sh` e includerla con `source`.
-
-3. **Gestione delle run**
-   - Potresti costruire una mappa degli script disponibili all’inizio, così da evitare di chiamare `ls` e `grep` più volte.
-   - Se la directory runs non cambia spesso, puoi anche ordinare gli script per esecuzione predefinita.
-
-4. **Esecuzione run**
-   - Potresti ciclare direttamente su un array di script da eseguire, senza la logica dei gruppi, dato che ora la gestione di `stow` è esclusiva.
-
-5. **Prompt iniziali**
-   - Potresti racchiudere i prompt in funzioni per rendere il main più compatto.
-
-6. **Messaggi di errore**
-   - Potresti aggiungere un controllo per evitare che lo script venga eseguito come root (se non necessario).
-
----
-
-### Esempio di struttura semplificata (pseudo-codice)
-
-```bash
-parse_options() {
-  # Usa getopts per --dry e --help
-}
-
-main() {
-  parse_options "$@"
-  prompt_sudo
-  prompt_keyring
-  prompt_dolphin
-
-  if [[ "$first_run" == "stow" ]]; then
-    run_stow "${args[@]}"
-  elif [[ $# -eq 0 ]]; then
-    run_all_except_stow
-  else
-    run_selected_scripts "${args[@]}"
-  fi
+```conf
+xwayland {
+    force_zero_scaling = true
 }
 ```
 
----
+## TODO package list
 
-### Suggerimenti pratici
+- [ ] Snipping tool (`hyprshot`): aggiungere `hyprshot` alla lista pacchetti e verificare eventuale configurazione o bind.
+- [ ] Color picker (`hyprpicker`): aggiungere `hyprpicker` alla lista pacchetti e collegarlo al setup colorpicker.
+- [ ] Mail client (`thunderbird`): aggiungere Thunderbird come client mail.
+- [ ] Clipboard manager (`nwg-clipman`): aggiungere `nwg-clipman` e verificare integrazione con Wayland/Hyprland.
+- [ ] Text OCR (`normcap`): aggiungere `normcap` come strumento OCR testuale con pacchetto lingua inglese sempre, italiano optional
+- [ ] `brightnessctl`: aggiungere gestione luminosita tramite `brightnessctl`.
+- [ ] `syncthing`: aggiungere Syncthing alla lista pacchetti e collegarlo alla task di configurazione automatica.
+- [ ] `remmina`: aggiungere Remmina per connessioni remote.
+- [ ] `obsidian`: aggiungere Obsidian alla lista pacchetti e config automatica da definire
+- [ ] aggiungere GIMP o alternative alla lista pacchetti opzionali
 
-- **getopts**: per parsing opzioni, anche con long options (con workaround).
-- **Array**: usa array per gestire le run, evitando concatenazioni di stringhe.
-- **Funzioni**: racchiudi ogni macro-blocco in una funzione.
-- **Sourcing**: metti funzioni comuni (log, check, ecc.) in un file `lib.sh` e includilo.
-------
+## Theme management
+
+### Waybar
+
+- [ ] Waybar - invert file name: invertire o rinominare i file tema Waybar secondo la convenzione desiderata.
+- [ ] Waybar - `reload_style_on_change`: valutare e configurare l'opzione per ricaricare automaticamente lo stile CSS quando cambia il file o un CSS importato.
+- [ ] Waybar - mantenere riferimento opzione originale:
+
+```text
+reload_style_on_change
+typeof: bool
+default: false
+Option to enable reloading the css style if a modification is detected on the style sheet file or any imported css files.
+```
+
+### Applicazioni GTK/XDG
+
+la gestione del tema dovrebbe solo avere uno dark e uno light, solo per i pacchetti descritti sotto
+
+- [ ] `code`: aggiungere gestione tema per Visual Studio Code.
+- [ ] `chrome`: aggiungere gestione tema per Chrome.
+- [ ] `blueman`: aggiungere gestione tema per Blueman.
+- [ ] `thunar`: aggiungere gestione tema per Thunar.
+- [ ] `obsidian`: aggiungere gestione tema per Obsidian.
+- [ ] `libre`: aggiungere gestione tema per LibreOffice.
+- [ ] `discord`: aggiungere gestione tema per Discord.
+- [ ] `spotify(change pkg)`: gestire tema Spotify e valutare cambio pacchetto come indicato nel contenuto originale.
+- [ ] `gtk xdg`: aggiungere gestione tema GTK e impostazioni XDG collegate.
+
+### Rofi
+
+- [ ] `rofi`: aggiungere gestione tema Rofi.
+- [ ] `awk config.rasi line`: modificare la linea corretta di `config.rasi` con `awk` o altra logica robusta per cambiare tema.
+
+### Kitty
+
+- [ ] `kitty`: aggiungere gestione tema Kitty.
+
+### Zsh
+
+- [ ] `cambiare thema zsh`: aggiungere cambio tema Zsh alla gestione temi.
+
+### Nvim
+
+- [ ] `nvim`: aggiungere gestione tema Neovim.
+- [ ] `awk change theme`: modificare il tema Neovim con `awk` o altra logica robusta.
+
+### Dunst
+
+- [ ] `dusnt`: aggiungere gestione tema Dunst, mantenendo attenzione al nome originale scritto come `dusnt`.
+- [ ] `same as waybar`: applicare a Dunst una logica simile a Waybar per aggiornamento o cambio tema.
