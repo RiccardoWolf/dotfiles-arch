@@ -6,7 +6,7 @@ source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)/lib.sh"
 # If no arguments, stow all dotfiles in home/.config
 if [[ $# -eq 0 ]]; then
   ensure_path_exists "$REPO_ROOT/home/.config"
-  mapfile -t DOTFILES < <(find "$REPO_ROOT/home/.config" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort)
+  mapfile -t DOTFILES < <(find "$REPO_ROOT/home/.config" -mindepth 1 -maxdepth 1 -type d ! -name dotfiles-arch -printf '%f\n' | sort)
   log "No dotfiles specified. Stowing all: ${DOTFILES[*]}"
 else
   DOTFILES=("$@")

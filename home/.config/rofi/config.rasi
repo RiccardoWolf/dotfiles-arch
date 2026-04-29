@@ -1,4 +1,4 @@
-@theme ".config/rofi/spotlight-blurred-light.rasi"
+@theme "../dotfiles-arch/themes/current/rofi.rasi"
 
 configuration {
   show-icons: true;

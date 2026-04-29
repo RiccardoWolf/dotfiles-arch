@@ -1,20 +1,5 @@
-@define-color base            #191724;
-@define-color overlay         #26233a;
-
-@define-color muted           #6e6a86;
-@define-color subtle          #908caa;
-@define-color text            black;
-
-@define-color love            #eb6f92;
-@define-color rose            #ebbcba;
-@define-color pine            #31748f;
-@define-color foam            #9ccfd8;
-@define-color foam-opacity    rgba(156, 207, 216, 0.6);
-@define-color iris            #c4a7e7;
-
-@define-color highlightLow    #21202e;
-@define-color highlightHigh   #524f67;
-
+/* Legacy fallback. The active Waybar config imports dotfiles-arch/themes/current/waybar.css. */
+@import "../dotfiles-arch/themes/light/waybar.css";
 
 * {
   border: none;
@@ -26,10 +11,9 @@
 }
 
 window#waybar {
-  background: rgba(255, 255, 255, 0.5);
   color: @text;
 }
-/* FIX THIS */
+
 tooltip {
   background: rgba(0, 0, 0, 0.9);
   border: 2px solid @highlightLow;
@@ -65,7 +49,7 @@ tooltip {
 
 #workspaces button:hover {
   color: @iris;
-  background: rgba(255, 255, 255, 0.1); /* Slight hover highlight */
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 4px;
 }
 
@@ -76,6 +60,7 @@ tooltip {
 #battery,
 #pulseaudio,
 #network,
+#custom-vpn,
 #bluetooth,
 #temperature,
 #workspaces,
@@ -103,9 +88,6 @@ tooltip {
   color: @love;
 }
 
-#tray {
-}
-
 #custom-power_profile {
   color: @foam;
 }
@@ -119,14 +101,23 @@ window#waybar.empty #window {
 }
 
 #clock {
-  color: white;
+  color: @text;
 }
 
 #network {
-  color: rgb(0, 255, 221);
+  color: @foam;
 }
 
-#idle_inhibitor {
+#custom-vpn.vpn-connected {
+  color: @foam;
+}
+
+#custom-vpn.vpn-disconnected {
+  color: @subtle;
+}
+
+#custom-vpn.vpn-unavailable {
+  color: @love;
 }
 
 #pulseaudio {

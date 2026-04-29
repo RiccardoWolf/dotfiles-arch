@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
+APP_NAME="dotfiles-arch"
+CURRENT_FILE="$STATE_HOME/$APP_NAME/theme"
+
+mode="dark"
+if [[ -f "$CURRENT_FILE" ]]; then
+  mode="$(<"$CURRENT_FILE")"
+fi
+
+if [[ "$mode" == "light" ]]; then
+  export GTK_THEME="${THEME_SWITCH_GTK_LIGHT:-Adwaita}"
+else
+  export GTK_THEME="${THEME_SWITCH_GTK_DARK:-Adwaita:dark}"
+fi
+
+exec /usr/bin/thunar "$@"

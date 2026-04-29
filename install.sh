@@ -52,7 +52,9 @@ AVAILABLE RUN SCRIPTS
     rofi-wayland          Installs rofi-wayland and stows its config.
     sddm                  Installs dependencies for the Catppuccin SDDM theme.
     stow [PKG...]         Stows dotfiles from home/.config to $HOME/.config. If no arguments, stows all. If arguments are given, only those dotfiles are stowed.
+    theme                 Installs theme dependencies, stows theme-managed dotfiles, and prepares active theme links.
     waybar [nwgbar]       Installs waybar and stows its config. If 'nwgbar' is passed as argument, also installs nwg-bar.
+    xdg                   Installs XDG helpers, copies repo desktop entries, refreshes the desktop database, and applies MIME/default-browser associations.
 
 EXAMPLES
     $0 --help
@@ -69,8 +71,12 @@ EXAMPLES
         Configure git (will prompt for username and email).
     $0 stow rofi waybar
         Stow only 'rofi' and 'waybar' dotfiles.
+    $0 theme
+        Install theme management dependencies and prepare active theme links.
     $0 waybar nwgbar
         Install waybar and also install nwg-bar.
+    $0 xdg
+        Install desktop entries and apply MIME/default-browser associations.
 
 EOF
 }
@@ -141,6 +147,7 @@ preferred_default_runs=(
   git.sh
   grub.sh
   myzsh.sh
+  theme.sh
   rofi-wayland.sh
   sddm.sh
   waybar.sh
@@ -237,7 +244,7 @@ package_categories() {
 dotfile_packages() {
   local config_dir="$REPO_ROOT/home/.config"
   [[ -d "$config_dir" ]] || return 0
-  find "$config_dir" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort
+  find "$config_dir" -mindepth 1 -maxdepth 1 -type d ! -name dotfiles-arch -printf '%f\n' | sort
 }
 
 queue_menu_task() {

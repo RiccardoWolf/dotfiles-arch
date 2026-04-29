@@ -11,7 +11,6 @@
   "modules-center": [],
   "modules-right": [
     "custom/spotify",
-    "custom/media",
     //"tray",
     "bluetooth",
     "network",
@@ -22,6 +21,7 @@
     "temperature",
     "memory",
     "clock",
+    "custom/theme",
     "battery",
     "custom/powermenu"
   ],
@@ -147,6 +147,13 @@
     "interval": 10,
     "exec": "$HOME/.config/waybar/openvpn3-widget.sh status",
     "on-click": "$HOME/.config/waybar/openvpn3-widget.sh toggle"
+  },
+
+  "custom/theme": {
+    "return-type": "json",
+    "interval": 5,
+    "exec": "$HOME/.config/waybar/theme-widget.sh status",
+    "on-click": "$HOME/.config/waybar/theme-widget.sh toggle"
   },
 
   "bluetooth": {

@@ -1,0 +1,86 @@
+* {
+    font:   "Montserrat 12";
+
+
+    background-color:   transparent;
+    text-color:   #4c4f69;
+
+    margin:     0;
+    padding:    0;
+    spacing:    0;
+}
+
+window {
+    background-color:   rgba(239, 241, 245, 0.94);
+
+    location:       center;
+    width:          640;
+    border-radius:  15;
+}
+
+inputbar {
+    font:       "Montserrat 20";
+    padding:    12px;
+    spacing:    12px;
+    children:   [ icon-search, entry ];
+}
+
+icon-search {
+    expand:     false;
+    filename:   "search.svg";
+    size:       32;
+    image-color: #4c4f69;
+}
+
+icon-search, entry, element-icon, element-text {
+    vertical-align: 0.5;
+}
+
+entry {
+    font:   inherit;
+
+    placeholder         : "Search";
+    placeholder-color   : #8c8fa1;
+}
+
+message {
+    border:             2px 0 0;
+    border-color:       #ccd0da;
+    background-color:   #e6e9ef;
+}
+
+textbox {
+    padding:    8px 24px;
+}
+
+listview {
+    lines:      10;
+    columns:    1;
+}
+
+element {
+    padding:            8px 16px;
+    spacing:            16px;
+    background-color:   transparent;
+}
+
+element normal active {
+    text-color: #1e66f5;
+}
+
+element alternate active {
+    text-color: inherit;
+}
+
+element selected normal, element selected active {
+    background-color:   #ccd0da;
+    text-color:         #4c4f69;
+}
+
+element-icon {
+    size:   1em;
+}
+
+element-text {
+    text-color: inherit;
+}

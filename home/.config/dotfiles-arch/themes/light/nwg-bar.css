@@ -1,0 +1,9 @@
+@define-color nwg-hover rgba(76, 79, 105, 0.1);
+
+window {
+	background-color: rgba(239, 241, 245, 0.92);
+}
+
+label {
+	color: #4c4f69;
+}

@@ -5,4 +5,4 @@ Icon=nvim
 Terminal=false
 Type=Application
 Categories=Development;IDE;Utility;
-MimeType=text/x-python;text/javascript;text/x-typescript;text/x-java-source;text/x-ruby;text/x-go;application/x-shellscript;text/x-c;text/x-c++src;text/x-chdr;text/x-csrc;text/x-rust;application/x-php;text/jsx;text/html;text/csv;
+MimeType=text/plain;text/x-markdown;text/x-python;application/javascript;text/javascript;text/x-typescript;text/jsx;text/x-java-source;text/x-ruby;text/x-go;application/x-shellscript;text/x-c;text/x-c++src;text/x-chdr;text/x-csrc;text/x-rust;application/x-php;text/html;text/csv;

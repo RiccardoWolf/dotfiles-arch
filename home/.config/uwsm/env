@@ -1,0 +1,8 @@
+# Changes require a restart to take effect.
+
+# Ensure Omarchy bins are in the path
+export RICK_PATH=$HOME/.local/share/rick
+export PATH=$HOME/bin:$HOME/.local/bin:$RICK_PATH/bin:$PATH
+
+# Set default terminal and editor
+source ~/.config/uwsm/default

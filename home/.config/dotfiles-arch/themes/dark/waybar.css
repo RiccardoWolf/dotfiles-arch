@@ -1,0 +1,22 @@
+@define-color base            #191724;
+@define-color overlay         #26233a;
+
+@define-color muted           #6e6a86;
+@define-color subtle          #908caa;
+@define-color text            white;
+
+@define-color love            #eb6f92;
+@define-color rose            #ebbcba;
+@define-color pine            #31748f;
+@define-color foam            #9ccfd8;
+@define-color foam-opacity    rgba(156, 207, 216, 0.6);
+@define-color iris            #c4a7e7;
+
+@define-color highlightLow    #21202e;
+@define-color highlightHigh   #524f67;
+@define-color tooltip_bg      rgba(0, 0, 0, 0.9);
+@define-color hover_bg        rgba(255, 255, 255, 0.1);
+
+window#waybar {
+  background: rgba(0, 0, 0, 0.2);
+}
