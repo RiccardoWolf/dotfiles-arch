@@ -11,7 +11,7 @@ Use the global Codex configuration as the baseline, then apply the rules here fo
 - This repo is shell-driven. Treat [`install.sh`](install.sh) and the executable scripts in [`runs/`](runs/) as the source of truth for installer behavior.
 - [`home/`](home/) contains the dotfiles payload that installer tasks deploy.
 - [`package-list.txt`](package-list.txt) is the current package manifest. [`runs/pkg.sh`](runs/pkg.sh) reads package categories from `#` headings and sends packages that are not in the pacman sync DB through `yay`.
-- The theme workflow lives in [`runs/theme.sh`](runs/theme.sh), [`home/bin/theme-switch/theme-switch`](home/bin/theme-switch/theme-switch), and [`home/.config/dotfiles-arch/themes/`](home/.config/dotfiles-arch/themes/). Runtime theme state is user-owned under `$XDG_STATE_HOME/dotfiles-arch`, and stowed configs should import `dotfiles-arch/themes/current`.
+- The theme workflow lives in [`runs/theme.sh`](runs/theme.sh), [`home/bin/theme-switch/theme-switch`](home/bin/theme-switch/theme-switch), and [`home/.config/dotfiles-arch/themes/`](home/.config/dotfiles-arch/themes/). Runtime theme assets and current state are user-owned under `$XDG_STATE_HOME/dotfiles-arch`, and stowed configs should import `dotfiles-arch/themes/current`.
 
 When working on installer logic, inspect the current shell flow and prefer focused bash changes that preserve existing behavior unless the task explicitly calls for a larger redesign.
 
@@ -30,7 +30,7 @@ When working on installer logic, inspect the current shell flow and prefer focus
   - [`install.sh`](install.sh) can modify `/etc/sudoers`, packages, and desktop defaults.
   - [`runs/stow.sh`](runs/stow.sh) and [`runs/theme.sh`](runs/theme.sh) can back up and replace user config targets before stowing or linking.
   - [`runs/pkg.sh`](runs/pkg.sh), [`runs/grub.sh`](runs/grub.sh), and [`runs/sddm.sh`](runs/sddm.sh) can change system packages, boot config, and display-manager state.
-  - [`home/bin/theme-switch/theme-switch`](home/bin/theme-switch/theme-switch) modifies GTK/XDG settings and supported app configs during apply/toggle, including VS Code, Chromium/Chrome live repainting, Neovim, Zsh, Codex, and optional Spicetify when configured.
+  - [`home/bin/theme-switch/theme-switch`](home/bin/theme-switch/theme-switch) modifies GTK/XDG settings and supported app configs during apply/toggle, including VS Code, Chromium/Chrome live repainting, Zsh, Codex, and optional Spicetify when configured.
 - Do not execute host-mutating installer scripts unless the user explicitly asks for execution.
 - Do not use installer execution or real-home theme application as routine verification for code changes.
 - When fixing install-path behavior, prefer conflict detection, backups, and fail-fast errors over delete-first replacement.

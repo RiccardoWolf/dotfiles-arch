@@ -46,7 +46,7 @@ xwayland {
 
 la gestione del tema dovrebbe solo avere uno dark e uno light, solo per i pacchetti descritti sotto
 
-Revisione corrente: `theme-switch apply <dark|light>` e `theme-switch toggle` aggiornano tutti i target supportati: link runtime, GTK/XDG, VS Code, Chrome live, Nvim, Zsh, Codex e Spicetify se configurato.
+Revisione corrente: `theme-switch apply <dark|light>` e `theme-switch toggle` aggiornano tutti i target supportati: link runtime, GTK/XDG, VS Code, Chrome live, Zsh, Codex e Spicetify se configurato.
 
 ### Waybar
 
@@ -88,11 +88,6 @@ Option to enable reloading the css style if a modification is detected on the st
 
 - [x] `cambiare thema zsh`: aggiungere cambio tema Zsh alla gestione temi.
 
-### Nvim
-
-- [x] `nvim`: aggiungere gestione tema Neovim.
-- [x] `awk change theme`: modificare il tema Neovim con `awk` o altra logica robusta.
-
 ### Dunst
 
 - [x] `dusnt`: aggiungere gestione tema Dunst, mantenendo attenzione al nome originale scritto come `dusnt`.
@@ -101,10 +96,11 @@ Option to enable reloading the css style if a modification is detected on the st
 ### Theme workflow cleanup
 
 - [x] Default install: `install.sh` include `theme` prima di `rofi-wayland` e `waybar`, cosi `theme-switch prepare/apply` crea `themes/current` prima delle config che lo importano.
-- [x] Semplificare `theme-switch apply`: un singolo comando aggiorna core link/reload e adapter app (`code`, Chrome live, nvim, zsh, Codex, Spicetify).
-- [x] Aggiungere backup anche per modifiche dirette a Neovim e Zsh, coerenti con gli altri writer.
+- [x] Semplificare `theme-switch apply`: un singolo comando aggiorna core link/reload e adapter app (`code`, Chrome live, zsh, Codex, Spicetify).
+- [x] Aggiungere backup coerenti per i writer diretti senza rompere i target symlinkati.
 - [x] Sistemare palette light: Rofi, Waybar e nwg-bar light hanno asset espliciti e meno scuri.
 - [x] Hyprland shortcut: `SUPER+SHIFT+T` toggla dark/light tramite `theme-switch toggle`.
 - [x] `runs/theme.sh`: evitare di stoware tutto `home/bin`; installare solo `theme-switch` e lasciare launcher Chrome/Thunar a `runs/xdg.sh`.
-- [x] Rimuovere o marcare legacy: `kitty-light.conf`, `waybar/style-light.css`, `nwg-bar/style-light.css`, wrapper Rofi `spotlight-blurred*`.
+- [x] Rimuovere legacy non usati: `kitty-light.conf`, `waybar/style-light.css`, `nwg-bar/style-light.css`, wrapper Rofi `spotlight-blurred*`, wrapper `dark.sh`/`light.sh`, e `home/.config/dunst/dunstrc`.
+- [x] Rendere il runtime indipendente dal checkout del repo copiando gli asset tema in `~/.local/state/dotfiles-arch/themes`.
 - [x] Verificare asset non referenziati e pesanti, per esempio `home/.config/hypr/old.png`: `old.png` e tracciato, pesa circa 2.4M e non ha riferimenti nel repo; lasciato in place per evitare rimozioni implicite.

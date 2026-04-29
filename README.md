@@ -67,7 +67,7 @@ System monitor   | [Btop](https://github.com/aristocratos/btop)
 
 The `xdg` task installs repo desktop entries and applies MIME/default-browser associations for Chrome, Thunar, imv, Neovim, and VLC. The older table above is useful as a component inventory, but it is not a guarantee that scripts never touch those applications.
 
-The `theme` task installs theme dependencies, stows `theme-switch` plus the Kitty, Waybar, nwg-bar, and Rofi configs, prepares `~/.config/dotfiles-arch/themes/current`, applies the dark theme once, and creates the Dunst startup config link. The default installer runs `theme` before the Rofi and Waybar tasks so configs that import `themes/current` have runtime state prepared first.
+The `theme` task installs theme dependencies, stows `theme-switch` plus the Kitty, Waybar, nwg-bar, and Rofi configs, copies the dark/light theme assets into `~/.local/state/dotfiles-arch/themes`, prepares the runtime links under `~/.config/dotfiles-arch/themes`, applies the dark theme once, and creates the Dunst startup config link. The default installer runs `theme` before the Rofi and Waybar tasks so configs that import `themes/current` have runtime state prepared first.
 
 Theme assets live under:
 
@@ -82,22 +82,20 @@ Runtime state lives under:
 ~/.local/state/dotfiles-arch
 ```
 
-The active config files for Waybar, Rofi, Kitty, nwg-bar, and Dunst import, link, or reload from `dotfiles-arch/themes/current`. `theme-switch apply <dark|light>` and `theme-switch toggle` update every supported theme target: Waybar, Rofi, Kitty, Dunst, GTK/XDG settings, VS Code, Chromium/Chrome live repainting, Neovim, Zsh, Codex, and Spicetify when configured.
+The active config files for Waybar, Rofi, Kitty, nwg-bar, and Dunst import, link, or reload from `dotfiles-arch/themes/current`. `theme-switch apply <dark|light>` and `theme-switch toggle` update every supported theme target: Waybar, Rofi, Kitty, Dunst, GTK/XDG settings, VS Code, Chromium/Chrome live repainting, Zsh, Codex, and Spicetify when configured.
 
 ```sh
 theme-switch apply light
 theme-switch toggle
 ```
 
-Direct adapter writes back up changed files under `~/.local/state/dotfiles-arch/backups`. Legacy light wrappers are kept as compatibility files, but active theme switching uses only the dark/light assets under `home/.config/dotfiles-arch/themes/`.
+Direct adapter writes back up changed files under `~/.local/state/dotfiles-arch/backups`, and runtime-owned theme assets stay under `~/.local/state/dotfiles-arch/themes` so the active links do not depend on the repo checkout remaining in place.
 
 Waybar includes a `custom/theme` module backed by `home/.config/waybar/theme-widget.sh`; click it or press `SUPER+SHIFT+T` in Hyprland to run `theme-switch toggle`.
 
 ## Credits
 [Waybar config](https://github.com/faizan-20/.dotfiles/)
 
-[Catppuccin theme](https://github.com/catppuccin/catppuccin) (For sddm, dunst and nvim colors)
+[Catppuccin theme](https://github.com/catppuccin/catppuccin) (For sddm and dunst colors)
 
 [Spotlight like theme for Rofi](https://github.com/newmanls)
-
-[Nvim config](https://github.com/dam9000/kickstart-modular.nvim/)

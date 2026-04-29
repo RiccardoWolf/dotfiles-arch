@@ -1,2 +1,0 @@
-/* Legacy compatibility wrapper. Active Rofi uses config.rasi and dotfiles-arch/themes/current/rofi.rasi. */
-@import "../dotfiles-arch/themes/dark/rofi.rasi"

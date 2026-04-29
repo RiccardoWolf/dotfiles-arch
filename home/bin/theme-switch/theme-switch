@@ -9,6 +9,7 @@ CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
 APP_NAME="dotfiles-arch"
 STATE_DIR="$STATE_HOME/$APP_NAME"
+STATE_THEME_DIR="$STATE_DIR/themes"
 CURRENT_DIR="$STATE_DIR/current"
 CURRENT_FILE="$STATE_DIR/theme"
 CONFIG_APP_DIR="$CONFIG_HOME/$APP_NAME"
@@ -16,14 +17,17 @@ CONFIG_THEME_DIR="$CONFIG_APP_DIR/themes"
 CHROME_CDP_PORT="${THEME_SWITCH_CHROME_CDP_PORT:-9222}"
 CHROME_CDP_URL="${THEME_SWITCH_CHROME_CDP_URL:-http://127.0.0.1:$CHROME_CDP_PORT}"
 
-THEME_ROOT="${THEME_SWITCH_THEME_ROOT:-}"
-if [[ -z "$THEME_ROOT" ]]; then
-  if [[ -d "$REPO_ROOT/home/.config/$APP_NAME/themes" ]]; then
-    THEME_ROOT="$REPO_ROOT/home/.config/$APP_NAME/themes"
+SOURCE_THEME_ROOT="${THEME_SWITCH_THEME_ROOT:-}"
+if [[ -z "$SOURCE_THEME_ROOT" ]]; then
+  if [[ -d "$STATE_THEME_DIR/dark" && -d "$STATE_THEME_DIR/light" ]]; then
+    SOURCE_THEME_ROOT="$STATE_THEME_DIR"
+  elif [[ -d "$REPO_ROOT/home/.config/$APP_NAME/themes" ]]; then
+    SOURCE_THEME_ROOT="$REPO_ROOT/home/.config/$APP_NAME/themes"
   else
-    THEME_ROOT="$CONFIG_THEME_DIR"
+    SOURCE_THEME_ROOT="$STATE_THEME_DIR"
   fi
 fi
+RUNTIME_THEME_ROOT="$STATE_THEME_DIR"
 
 usage() {
   cat <<EOF
@@ -51,7 +55,7 @@ warn() {
   printf 'theme-switch: %s\n' "$*" >&2
 }
 
-SUPPORTED_ADAPTERS=(vscode chromium chrome-live nvim zsh codex spicetify)
+SUPPORTED_ADAPTERS=(vscode chromium chrome-live zsh codex spicetify)
 
 all_supported_adapters() {
   printf '%s\n' "${SUPPORTED_ADAPTERS[*]}"
@@ -115,13 +119,136 @@ ensure_mode() {
   [[ "$mode" == "dark" || "$mode" == "light" ]] || die "expected mode 'dark' or 'light', got: $mode"
 }
 
+source_theme_dir() {
+  local mode="$1"
+  local path="$SOURCE_THEME_ROOT/$mode"
+
+  [[ -d "$path" ]] || die "missing theme directory: $path"
+  printf '%s\n' "$path"
+}
+
 theme_file() {
   local mode="$1"
   local name="$2"
-  local path="$THEME_ROOT/$mode/$name"
+  local path="$RUNTIME_THEME_ROOT/$mode/$name"
 
   [[ -f "$path" ]] || die "missing theme asset: $path"
   printf '%s\n' "$path"
+}
+
+replace_managed_link() {
+  local source="$1"
+  local target="$2"
+  local current_source
+
+  if [[ -L "$target" ]]; then
+    current_source="$(readlink -f -- "$target" 2>/dev/null || true)"
+    if [[ "$current_source" == "$(readlink -f -- "$source")" ]]; then
+      return 0
+    fi
+    backup_path_for_replace "$target"
+  elif [[ -e "$target" ]]; then
+    backup_path_for_replace "$target"
+  fi
+
+  ln -s -- "$source" "$target"
+}
+
+sync_theme_mode_assets() {
+  local mode="$1"
+  local source_dir target_dir source_real target_real
+
+  source_dir="$(source_theme_dir "$mode")"
+  target_dir="$RUNTIME_THEME_ROOT/$mode"
+  source_real="$(readlink -f -- "$source_dir")"
+  target_real="$(readlink -f -- "$target_dir" 2>/dev/null || true)"
+
+  if [[ -n "$target_real" && "$source_real" == "$target_real" ]]; then
+    return 0
+  fi
+
+  if [[ -L "$target_dir" ]]; then
+    backup_path_for_replace "$target_dir"
+  elif [[ -e "$target_dir" && ! -d "$target_dir" ]]; then
+    backup_path_for_replace "$target_dir"
+  fi
+
+  mkdir -p -- "$target_dir"
+  cp -a -- "$source_dir"/. "$target_dir"/
+}
+
+prepare_config_theme_links() {
+  local mode="${1:-dark}"
+
+  ensure_mode "$mode"
+  source_theme_dir dark >/dev/null
+  source_theme_dir light >/dev/null
+
+  if [[ -L "$CONFIG_APP_DIR" ]]; then
+    die "$CONFIG_APP_DIR is a symlink; runtime theme state must be user-owned, not stowed into the repo"
+  fi
+
+  if [[ -e "$CONFIG_APP_DIR" && ! -d "$CONFIG_APP_DIR" ]]; then
+    die "$CONFIG_APP_DIR exists but is not a directory"
+  fi
+
+  mkdir -p -- "$STATE_DIR" "$STATE_THEME_DIR" "$CURRENT_DIR" "$CONFIG_THEME_DIR"
+  sync_theme_mode_assets dark
+  sync_theme_mode_assets light
+  replace_managed_link "$STATE_THEME_DIR/dark" "$CONFIG_THEME_DIR/dark"
+  replace_managed_link "$STATE_THEME_DIR/light" "$CONFIG_THEME_DIR/light"
+  replace_managed_link "$CURRENT_DIR" "$CONFIG_THEME_DIR/current"
+}
+
+resolve_edit_target() {
+  local path="$1"
+  local resolved
+
+  if [[ -L "$path" ]]; then
+    resolved="$(readlink -f -- "$path" 2>/dev/null || true)"
+    [[ -n "$resolved" ]] || die "refusing to update symlink with missing target: $path"
+    printf '%s\n' "$resolved"
+    return 0
+  fi
+
+  printf '%s\n' "$path"
+}
+
+target_mode() {
+  local path="$1"
+  local fallback="$2"
+
+  if [[ -e "$path" ]]; then
+    stat -c '%a' -- "$path"
+  else
+    printf '%s\n' "$fallback"
+  fi
+}
+
+install_generated_file() {
+  local tmp="$1"
+  local path="$2"
+  local fallback_mode="$3"
+  local target mode
+
+  target="$(resolve_edit_target "$path")"
+  mode="$(target_mode "$target" "$fallback_mode")"
+  mkdir -p -- "$(dirname -- "$target")"
+  backup_file "$target"
+  install -m "$mode" -- "$tmp" "$target"
+}
+
+install_source_file() {
+  local source="$1"
+  local path="$2"
+  local fallback_mode="$3"
+  local target mode
+
+  target="$(resolve_edit_target "$path")"
+  mode="$(target_mode "$target" "$fallback_mode")"
+  mkdir -p -- "$(dirname -- "$target")"
+  backup_file "$target"
+  install -m "$mode" -- "$source" "$target"
 }
 
 link_current() {
@@ -134,48 +261,6 @@ link_current() {
   mkdir -p -- "$CURRENT_DIR"
   ln -sfn -- "$source_path" "$CURRENT_DIR/$current_name"
   log "$current_name -> $source_path"
-}
-
-link_if_missing_or_matching() {
-  local source="$1"
-  local target="$2"
-  local current_source
-
-  if [[ -L "$target" ]]; then
-    current_source="$(readlink -f -- "$target" 2>/dev/null || true)"
-    if [[ "$current_source" == "$(readlink -f -- "$source")" ]]; then
-      return 0
-    fi
-    die "refusing to replace existing symlink with different target: $target"
-  fi
-
-  if [[ -e "$target" ]]; then
-    die "refusing to replace existing path: $target"
-  fi
-
-  ln -s -- "$source" "$target"
-}
-
-prepare_config_theme_links() {
-  local mode="${1:-dark}"
-
-  ensure_mode "$mode"
-  [[ -d "$THEME_ROOT/dark" ]] || die "missing theme directory: $THEME_ROOT/dark"
-  [[ -d "$THEME_ROOT/light" ]] || die "missing theme directory: $THEME_ROOT/light"
-
-  if [[ -L "$CONFIG_APP_DIR" ]]; then
-    die "$CONFIG_APP_DIR is a symlink; runtime theme state must be user-owned, not stowed into the repo"
-  fi
-
-  if [[ -e "$CONFIG_APP_DIR" && ! -d "$CONFIG_APP_DIR" ]]; then
-    die "$CONFIG_APP_DIR exists but is not a directory"
-  fi
-
-  mkdir -p -- "$CONFIG_THEME_DIR"
-  link_if_missing_or_matching "$THEME_ROOT/dark" "$CONFIG_THEME_DIR/dark"
-  link_if_missing_or_matching "$THEME_ROOT/light" "$CONFIG_THEME_DIR/light"
-  ln -sfn -- "$CURRENT_DIR" "$CONFIG_THEME_DIR/current"
-  mkdir -p -- "$STATE_DIR" "$CURRENT_DIR"
 }
 
 run_optional() {
@@ -213,15 +298,15 @@ update_gtk_settings_ini() {
   local gtk_theme="$2"
   local prefer_dark="$3"
   local prefer_dark_int=0
-  local tmp
+  local tmp target
 
   command -v python3 &>/dev/null || return 0
   [[ "$prefer_dark" == true ]] && prefer_dark_int=1
 
-  mkdir -p -- "$(dirname -- "$path")"
-  backup_file "$path"
+  target="$(resolve_edit_target "$path")"
+  mkdir -p -- "$(dirname -- "$target")"
   tmp="$(mktemp)"
-  if python3 - "$path" "$gtk_theme" "$prefer_dark_int" > "$tmp" <<'PY'
+  if python3 - "$target" "$gtk_theme" "$prefer_dark_int" > "$tmp" <<'PY'
 from configparser import ConfigParser
 from pathlib import Path
 import sys
@@ -242,7 +327,7 @@ config.set("Settings", "gtk-application-prefer-dark-theme", prefer_dark)
 config.write(sys.stdout, space_around_delimiters=False)
 PY
   then
-    install -m 0644 -- "$tmp" "$path"
+    install_generated_file "$tmp" "$path" 0644
   else
     warn "failed to update GTK settings file: $path"
   fi
@@ -378,48 +463,19 @@ install_dunst_startup_config() {
   log "dunst: startup config -> $source"
 }
 
-update_nvim_catppuccin() {
-  local mode="$1"
-  local config="$CONFIG_HOME/nvim/lua/kickstart/plugins/catppuccin.lua"
-  local flavour tmp
-
-  [[ -f "$config" ]] || return 0
-  if [[ "$mode" == "dark" ]]; then
-    flavour="macchiato"
-  else
-    flavour="latte"
-  fi
-
-  tmp="$(mktemp "$STATE_DIR/catppuccin.lua.XXXXXX")"
-  awk -v flavour="$flavour" '
-    {
-      if ($0 ~ /flavour[[:space:]]*=[[:space:]]*["'\''][^"'\'']+["'\'']/) {
-        sub(/flavour[[:space:]]*=[[:space:]]*["'\''][^"'\'']+["'\'']/, "flavour = '\''" flavour "'\''")
-      }
-      print
-    }
-  ' "$config" > "$tmp"
-  if cmp -s -- "$tmp" "$config"; then
-    rm -f -- "$tmp"
-  else
-    backup_file "$config"
-    mv -- "$tmp" "$config"
-    log "nvim: set catppuccin flavour to $flavour"
-  fi
-}
-
 update_zsh_theme() {
   local mode="$1"
   local zshrc="$HOME/.zshrc"
-  local theme tmp
+  local theme tmp target
 
-  [[ -f "$zshrc" ]] || return 0
+  [[ -e "$zshrc" || -L "$zshrc" ]] || return 0
   if [[ "$mode" == "dark" ]]; then
     theme="${THEME_SWITCH_ZSH_DARK:-robbyrussell}"
   else
     theme="${THEME_SWITCH_ZSH_LIGHT:-robbyrussell}"
   fi
 
+  target="$(resolve_edit_target "$zshrc")"
   tmp="$(mktemp "$STATE_DIR/zshrc.XXXXXX")"
   awk -v theme="$theme" '
     BEGIN { done = 0 }
@@ -434,12 +490,12 @@ update_zsh_theme() {
         print "ZSH_THEME=\"" theme "\""
       }
     }
-  ' "$zshrc" > "$tmp"
-  if cmp -s -- "$tmp" "$zshrc"; then
+  ' "$target" > "$tmp"
+  if cmp -s -- "$tmp" "$target"; then
     rm -f -- "$tmp"
   else
-    backup_file "$zshrc"
-    mv -- "$tmp" "$zshrc"
+    install_generated_file "$tmp" "$zshrc" 0644
+    rm -f -- "$tmp"
     log "zsh: set ZSH_THEME to $theme"
   fi
 }
@@ -450,7 +506,7 @@ update_codex_theme() {
   local config="$codex_home/config.toml"
   local light_theme="${THEME_SWITCH_CODEX_LIGHT:-raccoon-readable}"
   local dark_theme="${THEME_SWITCH_CODEX_DARK:-onedark}"
-  local active_theme asset target tmp
+  local active_theme asset theme_target tmp config_target
 
   command -v python3 &>/dev/null || return 0
 
@@ -463,8 +519,8 @@ update_codex_theme() {
   mkdir -p -- "$codex_home"
 
   if [[ -n "$active_theme" ]]; then
-    asset="$THEME_ROOT/$mode/codex/$active_theme.tmTheme"
-    target="$codex_home/themes/$active_theme.tmTheme"
+    asset="$RUNTIME_THEME_ROOT/$mode/codex/$active_theme.tmTheme"
+    theme_target="$codex_home/themes/$active_theme.tmTheme"
     if [[ -f "$asset" ]]; then
       python3 - "$asset" <<'PY'
 import plistlib
@@ -475,15 +531,16 @@ with Path(sys.argv[1]).open("rb") as handle:
     plistlib.load(handle)
 PY
       mkdir -p -- "$codex_home/themes"
-      install -m 0644 -- "$asset" "$target"
+      install_source_file "$asset" "$theme_target" 0644
       log "codex: installed theme asset $active_theme"
     elif [[ "$active_theme" == "raccoon-readable" || "$active_theme" == "onedark" ]]; then
       die "missing Codex theme asset: $asset"
     fi
   fi
 
+  config_target="$(resolve_edit_target "$config")"
   tmp="$(mktemp "$STATE_DIR/codex-config.XXXXXX")"
-  if python3 - "$config" "$active_theme" > "$tmp" <<'PY'
+  if python3 - "$config_target" "$active_theme" > "$tmp" <<'PY'
 import json
 import re
 import sys
@@ -543,11 +600,10 @@ if new_text.strip():
 sys.stdout.write(new_text)
 PY
   then
-    if [[ ! -f "$config" && ! -s "$tmp" ]]; then
+    if [[ ! -f "$config_target" && ! -s "$tmp" ]]; then
       rm -f -- "$tmp"
-    elif [[ ! -f "$config" ]] || ! cmp -s -- "$tmp" "$config"; then
-      backup_file "$config"
-      install -m 0600 -- "$tmp" "$config"
+    elif [[ ! -f "$config_target" ]] || ! cmp -s -- "$tmp" "$config_target"; then
+      install_generated_file "$tmp" "$config" 0600
       rm -f -- "$tmp"
       if [[ -n "$active_theme" ]]; then
         log "codex: set TUI theme to $active_theme"
@@ -648,7 +704,7 @@ update_vscode_theme() {
   local mode="$1"
   local dark_theme="${THEME_SWITCH_VSCODE_DARK:-$(detect_vscode_builtin_theme dark)}"
   local light_theme="${THEME_SWITCH_VSCODE_LIGHT:-$(detect_vscode_builtin_theme light)}"
-  local active_theme settings tmp changed=0
+  local active_theme settings tmp changed=0 target
   local -a settings_paths=(
     "$CONFIG_HOME/Code/User/settings.json"
     "$CONFIG_HOME/Code - OSS/User/settings.json"
@@ -677,10 +733,11 @@ update_vscode_theme() {
   )
 
   for settings in "${settings_paths[@]}"; do
-    [[ -f "$settings" || -d "$(dirname -- "$settings")" ]] || continue
-    mkdir -p -- "$(dirname -- "$settings")"
+    [[ -e "$settings" || -L "$settings" || -d "$(dirname -- "$settings")" ]] || continue
+    target="$(resolve_edit_target "$settings")"
+    mkdir -p -- "$(dirname -- "$target")"
     tmp="$(mktemp "$STATE_DIR/vscode-settings.XXXXXX")"
-    if python3 - "$settings" "$active_theme" "$dark_theme" "$light_theme" > "$tmp" <<'PY'
+    if python3 - "$target" "$active_theme" "$dark_theme" "$light_theme" > "$tmp" <<'PY'
 import json
 import re
 import sys
@@ -728,9 +785,9 @@ if updates:
 sys.stdout.write(text)
 PY
     then
-      if [[ ! -f "$settings" ]] || ! cmp -s -- "$tmp" "$settings"; then
-        backup_file "$settings"
-        mv -- "$tmp" "$settings"
+      if [[ ! -f "$target" ]] || ! cmp -s -- "$tmp" "$target"; then
+        install_generated_file "$tmp" "$settings" 0644
+        rm -f -- "$tmp"
         log "vscode: set theme to $active_theme"
         changed=1
       else
@@ -748,7 +805,7 @@ PY
 update_chromium_theme() {
   local mode="$1"
   local color_scheme=0
-  local pref tmp changed=0
+  local pref tmp changed=0 target
   local app_name current_scheme profile_name
   local -a preference_files=()
 
@@ -768,8 +825,9 @@ update_chromium_theme() {
   )
 
   for pref in "${preference_files[@]}"; do
+    target="$(resolve_edit_target "$pref")"
     current_scheme="$(
-      python3 - "$pref" <<'PY'
+      python3 - "$target" <<'PY'
 import json
 import sys
 from pathlib import Path
@@ -787,7 +845,7 @@ PY
     fi
 
     tmp="$(mktemp "$STATE_DIR/chromium-preferences.XXXXXX")"
-    if python3 - "$pref" "$color_scheme" > "$tmp" <<'PY'
+    if python3 - "$target" "$color_scheme" > "$tmp" <<'PY'
 import json
 import sys
 from pathlib import Path
@@ -804,9 +862,9 @@ theme["color_scheme2"] = color_scheme
 json.dump(prefs, sys.stdout, ensure_ascii=False, separators=(",", ":"))
 PY
     then
-      if ! cmp -s -- "$tmp" "$pref"; then
-        backup_file "$pref"
-        mv -- "$tmp" "$pref"
+      if ! cmp -s -- "$tmp" "$target"; then
+        install_generated_file "$tmp" "$pref" 0644
+        rm -f -- "$tmp"
         profile_name="$(basename -- "$(dirname -- "$pref")")"
         case "$pref" in
           "$CONFIG_HOME/google-chrome"/*) app_name="chrome" ;;
@@ -824,8 +882,13 @@ PY
     fi
   done
 
-  if [[ "$changed" == "1" ]] && pgrep -x chrome &>/dev/null; then
-    warn "Chrome is running; system theme was written for next launch, then future switches should follow the desktop color scheme live"
+  if [[ "$changed" == "1" ]]; then
+    if pgrep -x chrome &>/dev/null; then
+      warn "Chrome is running; system theme was written for next launch, then future switches should follow the desktop color scheme live"
+    fi
+    if pgrep -x chromium &>/dev/null; then
+      warn "Chromium is running; system theme was written for next launch"
+    fi
   fi
 }
 
@@ -1104,9 +1167,6 @@ run_theme_adapters() {
   if adapter_in_list "$adapters" chrome-live; then
     apply_chrome_live_theme "$mode"
   fi
-  if adapter_in_list "$adapters" nvim; then
-    update_nvim_catppuccin "$mode"
-  fi
   if adapter_in_list "$adapters" zsh; then
     update_zsh_theme "$mode"
   fi
@@ -1125,7 +1185,6 @@ apply_mode() {
   adapters="$(all_supported_adapters)"
 
   mkdir -p -- "$STATE_DIR" "$CURRENT_DIR"
-  [[ -d "$THEME_ROOT/$mode" ]] || die "missing theme directory: $THEME_ROOT/$mode"
   prepare_config_theme_links "$mode"
 
   link_current "$mode" waybar.css waybar.css
@@ -1133,6 +1192,7 @@ apply_mode() {
   link_current "$mode" kitty.conf kitty.conf
   link_current "$mode" rofi.rasi rofi.rasi
   link_current "$mode" dunst.conf dunst.conf
+  link_current "$mode" search.svg search.svg
 
   printf '%s\n' "$mode" > "$CURRENT_FILE"
 
