@@ -82,7 +82,7 @@ Runtime state lives under:
 ~/.local/state/dotfiles-arch
 ```
 
-The active config files for Waybar, Rofi, Kitty, nwg-bar, and Dunst import, link, or reload from `dotfiles-arch/themes/current`. `theme-switch apply <dark|light>` and `theme-switch toggle` update every supported theme target: Waybar, Rofi, Kitty, Dunst, GTK/XDG settings, VS Code, Chromium/Chrome live repainting, Zsh, Codex, and Spicetify when configured.
+The active config files for Waybar, Rofi, Kitty, nwg-bar, and Dunst import, link, or reload from `dotfiles-arch/themes/current`. `theme-switch apply <dark|light>` and `theme-switch toggle` prepare the runtime links first, then switch those links and release supported app updates together: Waybar, Rofi, Kitty, Dunst, GTK/XDG settings, Chromium/Chrome system-theme preferences, Codex, and Spicetify when configured. VS Code is configured to follow the system color scheme, so its visible switch is driven by the GTK/XDG color-scheme update. The Zsh prompt reads the current theme state at prompt time, without rewriting `.zshrc`.
 
 ```sh
 theme-switch apply light
@@ -90,6 +90,10 @@ theme-switch toggle
 ```
 
 Direct adapter writes back up changed files under `~/.local/state/dotfiles-arch/backups`, and runtime-owned theme assets stay under `~/.local/state/dotfiles-arch/themes` so the active links do not depend on the repo checkout remaining in place.
+
+For VS Code, `theme-switch` ensures `window.autoDetectColorScheme` is enabled and writes the preferred dark/light themes to `settings.json`. It does not write `workbench.colorTheme` during toggles; VS Code should repaint when the desktop color scheme changes.
+
+For Chromium/Chrome, `theme-switch` only ensures browser profiles are set to follow the system theme. It does not open a DevTools endpoint or run a live repaint hook.
 
 Waybar includes a `custom/theme` module backed by `home/.config/waybar/theme-widget.sh`; click it or press `SUPER+SHIFT+T` in Hyprland to run `theme-switch toggle`.
 

@@ -46,7 +46,7 @@ xwayland {
 
 la gestione del tema dovrebbe solo avere uno dark e uno light, solo per i pacchetti descritti sotto
 
-Revisione corrente: `theme-switch apply <dark|light>` e `theme-switch toggle` aggiornano tutti i target supportati: link runtime, GTK/XDG, VS Code, Chrome live, Zsh, Codex e Spicetify se configurato.
+Revisione corrente: `theme-switch apply <dark|light>` e `theme-switch toggle` preparano i link runtime, poi li commutano insieme agli update/reload visibili: GTK/XDG, Chrome/Chromium in modalita system, Codex e Spicetify se configurato. VS Code segue il color scheme di sistema tramite `window.autoDetectColorScheme`; il prompt Zsh legge lo stato tema corrente senza riscrivere `.zshrc`.
 
 ### Waybar
 
@@ -86,7 +86,7 @@ Option to enable reloading the css style if a modification is detected on the st
 
 ### Zsh
 
-- [x] `cambiare thema zsh`: aggiungere cambio tema Zsh alla gestione temi.
+- [x] `cambiare thema zsh`: prompt Zsh dinamico che legge lo stato tema corrente, senza hot-swap di `ZSH_THEME`.
 
 ### Dunst
 
@@ -96,7 +96,7 @@ Option to enable reloading the css style if a modification is detected on the st
 ### Theme workflow cleanup
 
 - [x] Default install: `install.sh` include `theme` prima di `rofi-wayland` e `waybar`, cosi `theme-switch prepare/apply` crea `themes/current` prima delle config che lo importano.
-- [x] Semplificare `theme-switch apply`: un singolo comando aggiorna core link/reload e adapter app (`code`, Chrome live, zsh, Codex, Spicetify).
+- [x] Semplificare `theme-switch apply`: un singolo comando aggiorna core link/reload e avvia in parallelo gli adapter app (`code`, Chrome/Chromium system mode, Codex, Spicetify).
 - [x] Aggiungere backup coerenti per i writer diretti senza rompere i target symlinkati.
 - [x] Sistemare palette light: Rofi, Waybar e nwg-bar light hanno asset espliciti e meno scuri.
 - [x] Hyprland shortcut: `SUPER+SHIFT+T` toggla dark/light tramite `theme-switch toggle`.

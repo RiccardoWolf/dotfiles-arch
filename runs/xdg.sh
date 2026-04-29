@@ -5,13 +5,10 @@ source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)/lib.sh"
 
 applications_source_dir="$REPO_ROOT/home/.local/share/applications"
 applications_target_dir="$HOME/.local/share/applications"
-chrome_launcher_source="$REPO_ROOT/home/bin/google-chrome-live"
-chrome_launcher_target="$HOME/bin/google-chrome-live"
 thunar_launcher_source="$REPO_ROOT/home/bin/thunar-themed"
 thunar_launcher_target="$HOME/bin/thunar-themed"
 
 ensure_path_exists "$applications_source_dir"
-ensure_path_exists "$chrome_launcher_source"
 ensure_path_exists "$thunar_launcher_source"
 
 install_pacman_packages xdg-utils desktop-file-utils glib2
@@ -46,7 +43,6 @@ install_user_bin() {
   fi
 }
 
-install_user_bin "$chrome_launcher_source" "$chrome_launcher_target"
 install_user_bin "$thunar_launcher_source" "$thunar_launcher_target"
 
 shopt -s nullglob

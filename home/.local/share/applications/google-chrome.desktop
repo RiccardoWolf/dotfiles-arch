@@ -2,7 +2,7 @@
 [Desktop Entry]
 Name=Google Chrome
 GenericName=Web Browser
-Exec=sh -c "exec \$HOME/bin/google-chrome-live \"\$@\"" google-chrome-live %U
+Exec=google-chrome-stable %U
 Icon=google-chrome
 Terminal=false
 Type=Application

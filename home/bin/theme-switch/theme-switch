@@ -14,9 +14,6 @@ CURRENT_DIR="$STATE_DIR/current"
 CURRENT_FILE="$STATE_DIR/theme"
 CONFIG_APP_DIR="$CONFIG_HOME/$APP_NAME"
 CONFIG_THEME_DIR="$CONFIG_APP_DIR/themes"
-CHROME_CDP_PORT="${THEME_SWITCH_CHROME_CDP_PORT:-9222}"
-CHROME_CDP_URL="${THEME_SWITCH_CHROME_CDP_URL:-http://127.0.0.1:$CHROME_CDP_PORT}"
-
 SOURCE_THEME_ROOT="${THEME_SWITCH_THEME_ROOT:-}"
 if [[ -z "$SOURCE_THEME_ROOT" ]]; then
   if [[ -d "$STATE_THEME_DIR/dark" && -d "$STATE_THEME_DIR/light" ]]; then
@@ -39,9 +36,6 @@ Usage:
   theme-switch help
 
 Environment:
-  THEME_SWITCH_CHROME_CDP_PORT   Chrome DevTools port for live repainting; default: 9222
-  THEME_SWITCH_CHROME_CDP_URL    Full Chrome DevTools URL override, for example http://127.0.0.1:9222
-  THEME_SWITCH_CHROME_LIVE=0     Disable Chrome DevTools live repainting
   THEME_SWITCH_CODEX_LIGHT       Codex TUI theme for light mode; default: raccoon-readable
   THEME_SWITCH_CODEX_DARK        Codex TUI theme for dark mode; default: onedark
 EOF
@@ -55,7 +49,7 @@ warn() {
   printf 'theme-switch: %s\n' "$*" >&2
 }
 
-SUPPORTED_ADAPTERS=(vscode chromium chrome-live zsh codex spicetify)
+SUPPORTED_ADAPTERS=(vscode chromium codex spicetify)
 
 all_supported_adapters() {
   printf '%s\n' "${SUPPORTED_ADAPTERS[*]}"
@@ -263,6 +257,17 @@ link_current() {
   log "$current_name -> $source_path"
 }
 
+apply_current_links() {
+  local mode="$1"
+
+  link_current "$mode" waybar.css waybar.css
+  link_current "$mode" nwg-bar.css nwg-bar.css
+  link_current "$mode" kitty.conf kitty.conf
+  link_current "$mode" rofi.rasi rofi.rasi
+  link_current "$mode" dunst.conf dunst.conf
+  link_current "$mode" search.svg search.svg
+}
+
 run_optional() {
   if "$@"; then
     return 0
@@ -390,6 +395,7 @@ reload_kitty() {
   local failed=0
   local -a command_prefix=()
   local -a pids=()
+  local -a reload_pids=()
 
   command -v kitten &>/dev/null || return 0
   command -v pgrep &>/dev/null || return 0
@@ -408,8 +414,15 @@ reload_kitty() {
       continue
     fi
 
-    if "${command_prefix[@]}" kitten @ --to "unix:$socket" load-config "$config" &&
-      "${command_prefix[@]}" kitten @ --to "unix:$socket" set-colors --all --configured "$colors"; then
+    (
+      "${command_prefix[@]}" kitten @ --to "unix:$socket" load-config "$config" &&
+        "${command_prefix[@]}" kitten @ --to "unix:$socket" set-colors --all --configured "$colors"
+    ) &
+    reload_pids+=("$!")
+  done
+
+  for pid in "${reload_pids[@]}"; do
+    if wait "$pid"; then
       reloaded=1
     else
       failed=1
@@ -461,43 +474,6 @@ install_dunst_startup_config() {
 
   ln -s -- "$source" "$target"
   log "dunst: startup config -> $source"
-}
-
-update_zsh_theme() {
-  local mode="$1"
-  local zshrc="$HOME/.zshrc"
-  local theme tmp target
-
-  [[ -e "$zshrc" || -L "$zshrc" ]] || return 0
-  if [[ "$mode" == "dark" ]]; then
-    theme="${THEME_SWITCH_ZSH_DARK:-robbyrussell}"
-  else
-    theme="${THEME_SWITCH_ZSH_LIGHT:-robbyrussell}"
-  fi
-
-  target="$(resolve_edit_target "$zshrc")"
-  tmp="$(mktemp "$STATE_DIR/zshrc.XXXXXX")"
-  awk -v theme="$theme" '
-    BEGIN { done = 0 }
-    /^ZSH_THEME=/ {
-      print "ZSH_THEME=\"" theme "\""
-      done = 1
-      next
-    }
-    { print }
-    END {
-      if (!done) {
-        print "ZSH_THEME=\"" theme "\""
-      }
-    }
-  ' "$target" > "$tmp"
-  if cmp -s -- "$tmp" "$target"; then
-    rm -f -- "$tmp"
-  else
-    install_generated_file "$tmp" "$zshrc" 0644
-    rm -f -- "$tmp"
-    log "zsh: set ZSH_THEME to $theme"
-  fi
 }
 
 update_codex_theme() {
@@ -700,22 +676,20 @@ PY
   printf '%s\n' "$fallback"
 }
 
-update_vscode_theme() {
-  local mode="$1"
+ensure_vscode_auto_theme_config() {
   local dark_theme="${THEME_SWITCH_VSCODE_DARK:-$(detect_vscode_builtin_theme dark)}"
   local light_theme="${THEME_SWITCH_VSCODE_LIGHT:-$(detect_vscode_builtin_theme light)}"
-  local active_theme settings tmp changed=0 target
+  local settings tmp target index
   local -a settings_paths=(
     "$CONFIG_HOME/Code/User/settings.json"
     "$CONFIG_HOME/Code - OSS/User/settings.json"
     "$CONFIG_HOME/VSCodium/User/settings.json"
   )
+  local -a pending_settings=()
+  local -a pending_tmps=()
 
-  command -v python3 &>/dev/null || return 0
-  if [[ "$mode" == "dark" ]]; then
-    active_theme="$dark_theme"
-  else
-    active_theme="$light_theme"
+  if ! command -v python3 &>/dev/null; then
+    return 0
   fi
 
   while IFS= read -r settings; do
@@ -737,27 +711,31 @@ update_vscode_theme() {
     target="$(resolve_edit_target "$settings")"
     mkdir -p -- "$(dirname -- "$target")"
     tmp="$(mktemp "$STATE_DIR/vscode-settings.XXXXXX")"
-    if python3 - "$target" "$active_theme" "$dark_theme" "$light_theme" > "$tmp" <<'PY'
+    if python3 - "$target" "$dark_theme" "$light_theme" > "$tmp" <<'PY'
 import json
 import re
 import sys
 from pathlib import Path
 
 path = Path(sys.argv[1])
-active_theme = sys.argv[2]
-dark_theme = sys.argv[3]
-light_theme = sys.argv[4]
+dark_theme = sys.argv[2]
+light_theme = sys.argv[3]
 
 text = path.read_text() if path.exists() else "{\n}\n"
 updates = {
-    "window.autoDetectColorScheme": False,
+    "window.autoDetectColorScheme": True,
     "workbench.preferredDarkColorTheme": dark_theme,
     "workbench.preferredLightColorTheme": light_theme,
-    "workbench.colorTheme": active_theme,
 }
 
 def setting_line(key, value, indent="  "):
     return f"{indent}{json.dumps(key)}: {json.dumps(value)}"
+
+color_theme_pattern = re.compile(
+    r'^\s*' + re.escape(json.dumps("workbench.colorTheme")) + r'\s*:\s*.*?(?:,\s*)?(?://.*)?(?:\r?\n|$)',
+    re.MULTILINE,
+)
+text = color_theme_pattern.sub("", text)
 
 for key, value in list(updates.items()):
     pattern = re.compile(
@@ -778,18 +756,17 @@ if updates:
         raise SystemExit(f"{path}: expected a JSON object ending in '}}'")
     before = text[:close_index].rstrip()
     after = text[close_index:]
-    prefix = "" if before.endswith("{") else ","
+    prefix = "" if before.endswith("{") or before.endswith(",") else ","
     block = "\n" + ",\n".join(setting_line(k, v) for k, v in updates.items()) + "\n"
     text = before + prefix + block + after
 
+text = re.sub(r',(\s*\n\s*})\s*$', r'\1', text)
 sys.stdout.write(text)
 PY
     then
       if [[ ! -f "$target" ]] || ! cmp -s -- "$tmp" "$target"; then
-        install_generated_file "$tmp" "$settings" 0644
-        rm -f -- "$tmp"
-        log "vscode: set theme to $active_theme"
-        changed=1
+        pending_settings+=("$settings")
+        pending_tmps+=("$tmp")
       else
         rm -f -- "$tmp"
       fi
@@ -797,6 +774,12 @@ PY
       rm -f -- "$tmp"
       warn "failed to update VS Code settings: $settings"
     fi
+  done
+
+  for index in "${!pending_settings[@]}"; do
+    install_generated_file "${pending_tmps[$index]}" "${pending_settings[$index]}" 0644
+    rm -f -- "${pending_tmps[$index]}"
+    log "vscode: ensured auto-detect theme config"
   done
 
   return 0
@@ -892,245 +875,6 @@ PY
   fi
 }
 
-apply_chrome_live_theme() {
-  local mode="$1"
-
-  [[ "${THEME_SWITCH_CHROME_LIVE:-1}" != "0" ]] || return 0
-  command -v python3 &>/dev/null || return 0
-
-  python3 - "$mode" "$CHROME_CDP_URL" "$CHROME_CDP_PORT" <<'PY'
-import base64
-import json
-import os
-import errno
-import socket
-import struct
-import subprocess
-import sys
-import time
-import urllib.error
-import urllib.parse
-import urllib.request
-
-mode = sys.argv[1]
-cdp_url = sys.argv[2].rstrip("/")
-port = sys.argv[3]
-warned_prefix = "theme-switch: "
-
-
-def warn(message):
-    print(warned_prefix + message, file=sys.stderr)
-
-
-def chrome_is_running():
-    try:
-        result = subprocess.run(
-            ["pgrep", "-x", "chrome"],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            check=False,
-        )
-        return result.returncode == 0
-    except FileNotFoundError:
-        return False
-
-
-def request_json(url, *, method="GET", timeout=1.5):
-    request = urllib.request.Request(url, method=method)
-    with urllib.request.urlopen(request, timeout=timeout) as response:
-        return json.loads(response.read().decode("utf-8"))
-
-
-def get_version():
-    try:
-        return request_json(f"{cdp_url}/json/version")
-    except urllib.error.URLError as exc:
-        reason = getattr(exc, "reason", None)
-        refused = isinstance(reason, ConnectionRefusedError) or getattr(reason, "errno", None) == errno.ECONNREFUSED
-        timed_out = isinstance(reason, TimeoutError) or getattr(reason, "errno", None) == errno.ETIMEDOUT
-        if chrome_is_running() and (refused or timed_out):
-            warn(
-                "Chrome is running without the managed DevTools endpoint; "
-                "restart Chrome once through google-chrome-live so live theme switching can repaint it."
-            )
-        elif not refused:
-            warn(
-                f"Chrome DevTools endpoint is unavailable at {cdp_url}; "
-                f"if port {port} is occupied, set THEME_SWITCH_CHROME_CDP_PORT or THEME_SWITCH_CHROME_CDP_URL."
-            )
-        return None
-    except Exception:
-        warn(
-            f"Chrome DevTools endpoint at {cdp_url} did not return Chrome JSON; "
-            f"if port {port} is occupied, set THEME_SWITCH_CHROME_CDP_PORT or THEME_SWITCH_CHROME_CDP_URL."
-        )
-        return None
-
-
-def create_target():
-    encoded_url = urllib.parse.quote("chrome://new-tab-page", safe=":/")
-    try:
-        return request_json(f"{cdp_url}/json/new?{encoded_url}", method="PUT")
-    except urllib.error.HTTPError:
-        return request_json(f"{cdp_url}/json/new?{encoded_url}")
-
-
-def close_target(target_id):
-    if not target_id:
-        return
-    try:
-        urllib.request.urlopen(f"{cdp_url}/json/close/{target_id}", timeout=1).close()
-    except Exception:
-        pass
-
-
-class CDPWebSocket:
-    def __init__(self, websocket_url):
-        parsed = urllib.parse.urlparse(websocket_url)
-        if parsed.scheme != "ws":
-            raise ValueError(f"unsupported websocket URL: {websocket_url}")
-        self.host = parsed.hostname or "127.0.0.1"
-        self.port = parsed.port or 80
-        self.path = parsed.path or "/"
-        if parsed.query:
-            self.path += "?" + parsed.query
-        self.sock = socket.create_connection((self.host, self.port), timeout=2)
-        key = base64.b64encode(os.urandom(16)).decode("ascii")
-        headers = (
-            f"GET {self.path} HTTP/1.1\r\n"
-            f"Host: {self.host}:{self.port}\r\n"
-            "Upgrade: websocket\r\n"
-            "Connection: Upgrade\r\n"
-            f"Sec-WebSocket-Key: {key}\r\n"
-            "Sec-WebSocket-Version: 13\r\n"
-            "\r\n"
-        )
-        self.sock.sendall(headers.encode("ascii"))
-        response = self.sock.recv(4096)
-        if b" 101 " not in response.split(b"\r\n", 1)[0]:
-            raise RuntimeError("websocket handshake failed")
-        self.next_id = 1
-
-    def close(self):
-        try:
-            self.sock.close()
-        except Exception:
-            pass
-
-    def send_frame(self, payload):
-        data = payload.encode("utf-8")
-        header = bytearray([0x81])
-        if len(data) < 126:
-            header.append(0x80 | len(data))
-        elif len(data) < 65536:
-            header.append(0x80 | 126)
-            header.extend(struct.pack("!H", len(data)))
-        else:
-            header.append(0x80 | 127)
-            header.extend(struct.pack("!Q", len(data)))
-        mask = os.urandom(4)
-        header.extend(mask)
-        masked = bytes(byte ^ mask[index % 4] for index, byte in enumerate(data))
-        self.sock.sendall(bytes(header) + masked)
-
-    def recv_exact(self, size):
-        chunks = []
-        remaining = size
-        while remaining:
-            chunk = self.sock.recv(remaining)
-            if not chunk:
-                raise RuntimeError("websocket closed")
-            chunks.append(chunk)
-            remaining -= len(chunk)
-        return b"".join(chunks)
-
-    def recv_frame(self):
-        first, second = self.recv_exact(2)
-        opcode = first & 0x0F
-        masked = bool(second & 0x80)
-        length = second & 0x7F
-        if length == 126:
-            length = struct.unpack("!H", self.recv_exact(2))[0]
-        elif length == 127:
-            length = struct.unpack("!Q", self.recv_exact(8))[0]
-        mask = self.recv_exact(4) if masked else b""
-        payload = self.recv_exact(length) if length else b""
-        if masked:
-            payload = bytes(byte ^ mask[index % 4] for index, byte in enumerate(payload))
-        if opcode == 8:
-            raise RuntimeError("websocket closed")
-        if opcode == 9:
-            return self.recv_frame()
-        if opcode != 1:
-            return self.recv_frame()
-        return payload.decode("utf-8")
-
-    def call(self, method, params):
-        message_id = self.next_id
-        self.next_id += 1
-        self.send_frame(json.dumps({"id": message_id, "method": method, "params": params}))
-        deadline = time.monotonic() + 5
-        while time.monotonic() < deadline:
-            response = json.loads(self.recv_frame())
-            if response.get("id") == message_id:
-                if "error" in response:
-                    raise RuntimeError(response["error"])
-                return response.get("result", {})
-        raise TimeoutError(method)
-
-
-def apply_live(websocket_url):
-    expression = f"""
-(async () => {{
-  const browserProxyModule = await import('chrome://resources/cr_components/customize_color_scheme_mode/browser_proxy.js');
-  const mojom = await import('chrome://resources/cr_components/customize_color_scheme_mode/customize_color_scheme_mode.mojom-webui.js');
-  const proxy = browserProxyModule.CustomizeColorSchemeModeBrowserProxy.getInstance();
-  const colorSchemeMode = {mode!r} === 'dark' ? mojom.ColorSchemeMode.kDark : mojom.ColorSchemeMode.kLight;
-  await proxy.handler.setColorSchemeMode(colorSchemeMode);
-  return {mode!r};
-}})()
-"""
-    ws = CDPWebSocket(websocket_url)
-    try:
-        result = ws.call(
-            "Runtime.evaluate",
-            {
-                "expression": expression,
-                "awaitPromise": True,
-                "returnByValue": True,
-                "userGesture": True,
-            },
-        )
-    finally:
-        ws.close()
-    exception = result.get("exceptionDetails")
-    if exception:
-        raise RuntimeError(exception.get("text", "Runtime.evaluate failed"))
-
-
-version = get_version()
-if not version:
-    raise SystemExit(0)
-
-target = None
-try:
-    target = create_target()
-    websocket_url = target.get("webSocketDebuggerUrl")
-    if not websocket_url:
-        raise RuntimeError("missing page websocket URL")
-    apply_live(websocket_url)
-    print(f"chrome: applied live {mode} theme")
-except Exception as exc:
-    warn(
-        f"Chrome live theme switch failed via {cdp_url}: {exc}. "
-        f"Restart Chrome through google-chrome-live, or set THEME_SWITCH_CHROME_LIVE=0 to disable this path."
-    )
-finally:
-    if target:
-        close_target(target.get("id"))
-PY
-}
-
 apply_spicetify_if_configured() {
   local mode="$1"
   local theme="${THEME_SWITCH_SPICETIFY_THEME:-}"
@@ -1151,31 +895,111 @@ apply_spicetify_if_configured() {
   run_optional spicetify apply
 }
 
-run_theme_adapters() {
+THEME_TASK_PIDS=()
+THEME_TASK_LABELS=()
+THEME_TASK_LOGS=()
+THEME_TASK_RELEASE=""
+
+reset_theme_tasks() {
+  if [[ -n "${THEME_TASK_RELEASE:-}" ]]; then
+    rm -f -- "$THEME_TASK_RELEASE"
+  fi
+  THEME_TASK_PIDS=()
+  THEME_TASK_LABELS=()
+  THEME_TASK_LOGS=()
+  THEME_TASK_RELEASE=""
+}
+
+wait_for_theme_release() {
+  local release_file="${1:-${THEME_TASK_RELEASE:-}}"
+
+  while [[ -n "$release_file" && -e "$release_file" ]]; do
+    sleep 0.01
+  done
+}
+
+start_theme_task() {
+  local label="$1"
+  local log_file release_file
+  shift
+
+  log_file="$(mktemp "$STATE_DIR/theme-task-$label.XXXXXX")"
+  release_file="$THEME_TASK_RELEASE"
+  (
+    wait_for_theme_release "$release_file"
+    "$@"
+  ) >"$log_file" 2>&1 &
+
+  THEME_TASK_PIDS+=("$!")
+  THEME_TASK_LABELS+=("$label")
+  THEME_TASK_LOGS+=("$log_file")
+}
+
+wait_theme_tasks() {
+  local status=0
+  local index pid label log_file rc
+
+  for index in "${!THEME_TASK_PIDS[@]}"; do
+    pid="${THEME_TASK_PIDS[$index]}"
+    label="${THEME_TASK_LABELS[$index]}"
+    log_file="${THEME_TASK_LOGS[$index]}"
+
+    if wait "$pid"; then
+      rc=0
+    else
+      rc=$?
+    fi
+
+    if [[ -s "$log_file" ]]; then
+      sed "s/^/[$label] /" "$log_file"
+    fi
+    rm -f -- "$log_file"
+
+    if ((rc != 0)); then
+      warn "$label task failed with exit status $rc"
+      status=1
+    fi
+  done
+
+  reset_theme_tasks
+  return "$status"
+}
+
+start_theme_adapter_tasks() {
   local mode="$1"
   local adapters="$2"
 
   [[ -n "$adapters" ]] || return 0
   log "theme adapters: $adapters"
 
-  if adapter_in_list "$adapters" vscode; then
-    update_vscode_theme "$mode"
-  fi
   if adapter_in_list "$adapters" chromium; then
-    update_chromium_theme "$mode"
-  fi
-  if adapter_in_list "$adapters" chrome-live; then
-    apply_chrome_live_theme "$mode"
-  fi
-  if adapter_in_list "$adapters" zsh; then
-    update_zsh_theme "$mode"
+    start_theme_task chromium update_chromium_theme "$mode"
   fi
   if adapter_in_list "$adapters" codex; then
-    update_codex_theme "$mode"
+    start_theme_task codex update_codex_theme "$mode"
   fi
   if adapter_in_list "$adapters" spicetify; then
-    apply_spicetify_if_configured "$mode"
+    start_theme_task spicetify apply_spicetify_if_configured "$mode"
   fi
+}
+
+run_theme_activation_tasks() {
+  local mode="$1"
+  local adapters="$2"
+
+  reset_theme_tasks
+  THEME_TASK_RELEASE="$(mktemp "$STATE_DIR/theme-release.XXXXXX")"
+  if adapter_in_list "$adapters" vscode; then
+    ensure_vscode_auto_theme_config
+  fi
+  start_theme_task gtk-xdg apply_xdg_gtk "$mode"
+  start_theme_adapter_tasks "$mode" "$adapters"
+  start_theme_task waybar reload_waybar
+  start_theme_task kitty reload_kitty
+  start_theme_task dunst reload_dunst
+  apply_current_links "$mode"
+  rm -f -- "$THEME_TASK_RELEASE"
+  wait_theme_tasks
 }
 
 apply_mode() {
@@ -1187,21 +1011,9 @@ apply_mode() {
   mkdir -p -- "$STATE_DIR" "$CURRENT_DIR"
   prepare_config_theme_links "$mode"
 
-  link_current "$mode" waybar.css waybar.css
-  link_current "$mode" nwg-bar.css nwg-bar.css
-  link_current "$mode" kitty.conf kitty.conf
-  link_current "$mode" rofi.rasi rofi.rasi
-  link_current "$mode" dunst.conf dunst.conf
-  link_current "$mode" search.svg search.svg
-
   printf '%s\n' "$mode" > "$CURRENT_FILE"
 
-  apply_xdg_gtk "$mode"
-  run_theme_adapters "$mode" "$adapters"
-
-  reload_waybar
-  reload_kitty
-  reload_dunst
+  run_theme_activation_tasks "$mode" "$adapters"
 
   log "theme: $mode"
 }

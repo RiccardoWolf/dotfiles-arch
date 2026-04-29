@@ -8,7 +8,7 @@ export ZSH="$HOME/.oh-my-zsh"
 # load a random theme each time Oh My Zsh is loaded, in which case,
 # to know which specific one was loaded, run: echo $RANDOM_THEME
 # See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
-ZSH_THEME="robbyrussell"
+ZSH_THEME=""
 
 # Set list of themes to pick from when loading at random
 # Setting this variable when ZSH_THEME=random will cause zsh to load
@@ -74,6 +74,46 @@ HIST_STAMPS="dd-mm-yyyy"
 plugins=(git zsh-autosuggestions zsh-syntax-highlighting you-should-use)
 
 source $ZSH/oh-my-zsh.sh
+setopt prompt_subst
+
+dotfiles_arch_theme_mode() {
+  local theme_file="${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles-arch/theme"
+  local mode="dark"
+
+  if [[ -r "$theme_file" ]]; then
+    read -r mode < "$theme_file"
+  fi
+
+  case "$mode" in
+    dark|light) printf '%s\n' "$mode" ;;
+    *) printf 'dark\n' ;;
+  esac
+}
+
+dotfiles_arch_apply_prompt_theme() {
+  local mode
+  mode="$(dotfiles_arch_theme_mode)"
+
+  if [[ "$mode" == "light" ]]; then
+    ZSH_THEME_GIT_PROMPT_PREFIX=" %F{88}git:(%F{25}"
+    ZSH_THEME_GIT_PROMPT_SUFFIX="%F{88})%f"
+    ZSH_THEME_GIT_PROMPT_DIRTY="%F{88} x%f"
+    ZSH_THEME_GIT_PROMPT_CLEAN="%F{28} o%f"
+    PROMPT='%F{28}->%f  %F{25}%c%f$(git_prompt_info) '
+  else
+    ZSH_THEME_GIT_PROMPT_PREFIX=" %F{magenta}git:(%F{blue}"
+    ZSH_THEME_GIT_PROMPT_SUFFIX="%F{magenta})%f"
+    ZSH_THEME_GIT_PROMPT_DIRTY="%F{red} x%f"
+    ZSH_THEME_GIT_PROMPT_CLEAN="%F{green} o%f"
+    PROMPT='%F{green}->%f  %F{cyan}%c%f$(git_prompt_info) '
+  fi
+
+  RPROMPT=''
+}
+
+autoload -Uz add-zsh-hook
+add-zsh-hook precmd dotfiles_arch_apply_prompt_theme
+dotfiles_arch_apply_prompt_theme
 
 # User configuration
 
